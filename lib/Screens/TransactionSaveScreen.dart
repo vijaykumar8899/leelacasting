@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/HelperFunctions/Toast.dart';
 import 'package:leelacasting/Screens/HomeScreen.dart';
+import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -55,8 +56,10 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         .split(' ')[0]; // Get today's date in format 'yyyy-mm-dd'
 
     List<String> parts = currentDate.split('-');
-    formattedDate =
-        '${parts[2]}-${parts[1]}-${parts[0]}'; // Reversing the date format to 'dd-mm-yyyy'
+    // formattedDate =
+    //     '${parts[2]}-${parts[1]}-${parts[0]}';
+    // Reversing the date format to 'dd-mm-yyyy'
+    formattedDate = '06-10-2024';
   }
 
   @override
@@ -194,6 +197,78 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
     _selectedTypeValues = List.generate(_quantity, (index) => null);
   }
 
+  Future<bool> checkCustmerExist(String phoneNumber) async {
+    try {
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      DocumentSnapshot<Map<String, dynamic>> docSnapshot =
+          await firestore.collection('customerList').doc(phoneNumber).get();
+
+      if (docSnapshot.exists) {
+        return true;
+      } else {
+        try {
+          await firestore.collection('customerList').doc(phoneNumber).set({
+            'customerName': _nameCtrl.text,
+            'customerPhoneNumber': phoneNumber,
+            'customerCity': _cityCtrl.text,
+            'timeStamp': Timestamp.now(),
+          });
+        } catch (e) {
+          print("error in set : $e");
+        }
+        return true;
+      }
+    } catch (e) {
+      print("error checkCustmer : $e");
+    }
+    return false;
+  }
+
+  Future<void> getDayPayables() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      DocumentSnapshot<Map<String, dynamic>> docSnapshot = await firestore
+          .collection(Collectionnames.mainCollectionName)
+          .doc(Collectionnames.dialyTransactionDoc)
+          .collection(Collectionnames.allDataCollection)
+          .doc(formattedDate)
+          .get();
+
+      if (docSnapshot.exists) {
+        // Access the totalWeight and totalCount fields from the document
+        print(' data from fire : ${docSnapshot.data()}');
+        // print(
+        //     ' data from str : ${docSnapshot.data()?['totalWeight'].toString()}');
+
+        // String totalWeight_ = docSnapshot.data()!['totalWeight'];
+        // String totalCount_ = docSnapshot.data()!['totalCount'];
+        // ToastMessage.toast_('2');
+
+        // totalWeight = double.tryParse(totalWeight_) ?? 0.0;
+        // totalCount = int.tryParse(totalCount_) ?? 0;
+      } else {
+        try {
+          await firestore
+              .collection(Collectionnames.mainCollectionName)
+              .doc(Collectionnames.dialyTransactionDoc)
+              .collection(Collectionnames.allDataCollection)
+              .doc(formattedDate)
+              .set({
+            'totalPayables': '0.000',
+            'totalRecivables': '0.000',
+            'timeStamp': Timestamp.now(),
+          });
+        } catch (e) {
+          print("error in set : $e");
+        }
+      }
+    } catch (e) {
+      print('Error in the first method : $e');
+      return null;
+    }
+  }
+
   // Method to save the transaction data
   Future<void> _saveTransaction() async {
     try {
@@ -207,25 +282,33 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
           'percentage': percentage,
         });
       }
-      final weight = _advanceGoldCtrl.text;
+      bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
+      if (doesUserExist) {
+        await getDayPayables();
 
-      // Save data to Firestore
-      await firestore
-          .collection('leelaCasting')
-          .doc('DialyTransactions')
-          .collection(formattedDate)
-          .add({
-        'name': _nameCtrl.text,
-        'phoneNumber': _phoneNumberCtrl.text,
-        'city': _cityCtrl.text,
-        'advanceGold': weight.toString(),
-        'typeAndPercentage': typesAndPercentages,
-        'timestamp': Timestamp.now(),
-      }).then((value) {
-        print('Data Added.');
-      }).catchError((error) {
-        print('Error : $error');
-      });
+        final weight = _advanceGoldCtrl.text;
+
+        // Save data to Firestore
+        await firestore
+            .collection(Collectionnames.mainCollectionName)
+            .doc(Collectionnames.dialyTransactionDoc)
+            .collection(formattedDate)
+            .add({
+          'name': _nameCtrl.text,
+          'phoneNumber': _phoneNumberCtrl.text,
+          'city': _cityCtrl.text,
+          'advanceGold': weight.toString(),
+          'typeAndPercentage': typesAndPercentages,
+          'timestamp': Timestamp.now(),
+        }).then((value) {
+          print('Data Added.');
+        }).catchError((error) {
+          print('Error : $error');
+        });
+      } else {
+        ToastMessage.toast_(
+            'Something went wrong, Please try after some time : userCheck');
+      }
     } catch (e) {
       print("Error: $e");
     }
