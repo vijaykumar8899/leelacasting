@@ -9,6 +9,7 @@ import 'package:leelacasting/Screens/RecordScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:leelacasting/CommonWidgets/InputField.dart';
 
 class TransactionSaveScreen extends StatefulWidget {
   const TransactionSaveScreen({super.key});
@@ -97,27 +98,27 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
             padding: EdgeInsets.all(8.0),
             child: Column(
               children: [
-                _buildTextFormField(
+                buildTextFormField(
                   labelText: "Name",
                   keyboardType: TextInputType.name,
                   controller: _nameCtrl,
                 ),
-                _buildTextFormField(
+                buildTextFormField(
                   labelText: "Enter Phone Number",
                   keyboardType: TextInputType.phone,
                   controller: _phoneNumberCtrl,
                 ),
-                _buildTextFormField(
+                buildTextFormField(
                   labelText: "City",
                   keyboardType: TextInputType.name,
                   controller: _cityCtrl,
                 ),
-                _buildTextFormField(
+                buildTextFormField(
                   labelText: "Advance Gold",
                   keyboardType: TextInputType.number,
                   controller: _advanceGoldCtrl,
                 ),
-                _buildTextFormField(
+                buildTextFormField(
                   labelText: "Quantity",
                   keyboardType: TextInputType.number,
                   controller: _quantityCtrl,
@@ -244,7 +245,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         //     ' data from str : ${docSnapshot.data()?['totalWeight'].toString()}');
 
         String totalPayablesOfDay_ = docSnapshot.data()!['totalPayablesOfDay'];
-        String totalRecivablesOfDay_ = docSnapshot.data()!['totalRecivablesOfDay'];
+        String totalRecivablesOfDay_ =
+            docSnapshot.data()!['totalRecivablesOfDay'];
         ToastMessage.toast_('2');
         totalPayablesOfDay = double.tryParse(totalPayablesOfDay_) ?? 0.0;
         totalRecivablesOfDay = double.tryParse(totalRecivablesOfDay_) ?? 0.0;
@@ -302,9 +304,9 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
       }
       bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
       if (doesUserExist) {
-       var length =  await getDayPayables();
-       var generatedBarCode = '$formattedDate-$length' ;
-       print("generatedBar : $generatedBarCode");
+        var length = await getDayPayables();
+        var generatedBarCode = '$formattedDate-$length';
+        print("generatedBar : $generatedBarCode");
 
         final weight = _advanceGoldCtrl.text;
 
@@ -348,6 +350,7 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
       _selectedTypeValues = [];
 
       isLoading = false;
+      Navigator.of(context).pop();
     });
   }
 }
@@ -383,39 +386,6 @@ Widget _buildDropdownField({
         );
       }).toList(),
       onChanged: onChanged,
-    ),
-  );
-}
-
-// Text form field builder
-Widget _buildTextFormField({
-  required String labelText,
-  bool obscureText = false,
-  required TextEditingController controller,
-  TextInputType? keyboardType,
-  Function(String)? onChanged,
-}) {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: TextFormField(
-      style: TextStyle(color: Colors.grey[800]),
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      controller: controller,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey[200],
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.orangeAccent, width: 2.0),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey[400]!, width: 2.0),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        labelText: labelText,
-      ),
     ),
   );
 }
