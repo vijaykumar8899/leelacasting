@@ -10,6 +10,6 @@ class ReceivablesScreen extends StatefulWidget {
 class _ReceivablesScreenState extends State<ReceivablesScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold();
   }
 }

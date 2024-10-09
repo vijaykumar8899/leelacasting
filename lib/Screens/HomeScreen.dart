@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
         .collection('allDataCollection')
-        .orderBy('timeStamp', descending: true)
+        .orderBy('timestamp', descending: true)
         .get();
   }
 
@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Input Data",
+          "Home Page",
           style: GoogleFonts.rowdies(
             textStyle: const TextStyle(
               color: Colors.black,
@@ -80,11 +80,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 return Column(
                   children: [
-                    Text(documentID),
-                    
-                    DisplayDataFromFirebase(
-                      collectionPath: documentID,
-                    )
+
+                   Container(
+                    width: MediaQuery.of(context).size.width * 0.045,
+                  //  height:  MediaQuery.of(context).size.width * 0.045,
+                  child: Column(children: [
+                    DisplayDataFromFirebase(collectionPath: documentID,),
+                  ],),
+                   )
                   ],
                 );
               },
@@ -118,7 +121,7 @@ class customDataDisplay extends StatelessWidget {
 }
 
 class DisplayDataFromFirebase extends StatelessWidget {
-  var collectionPath;
+  String collectionPath;
 
   DisplayDataFromFirebase({super.key, required this.collectionPath});
 
@@ -169,7 +172,7 @@ class DisplayDataFromFirebase extends StatelessWidget {
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
         .collection(collectionPath) // Replace with your date
-        .orderBy('timeStamp', descending: true)
+        .orderBy('timestamp', descending: true)
         .snapshots();
     // print('collectionPath : $collectionPath');
 
@@ -209,7 +212,7 @@ class DisplayDataFromFirebase extends StatelessWidget {
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (BuildContext context, int index) {
                 var doc = snapshot.data!.docs[index];
-                Timestamp timeStamp = doc['timeStamp'] as Timestamp;
+                Timestamp timeStamp = doc['timestamp'] as Timestamp;
                 // Convert Firestore Timestamp to DateTime
                 DateTime dateTime = timeStamp.toDate();
 
@@ -235,11 +238,11 @@ class DisplayDataFromFirebase extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                              Row(
+                            Row(
                               // mainAxisAlignment: MainAxisAlignment.center,
                               // crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                               Text("name : ${doc['name']}"),
+                                Text("name : ${doc['name']}"),
                               ],
                             ),
                           ],

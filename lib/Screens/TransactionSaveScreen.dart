@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/HelperFunctions/Toast.dart';
 import 'package:leelacasting/Screens/HomeScreen.dart';
+import 'package:leelacasting/Screens/RecordScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -28,6 +29,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
   bool isLoading = false;
   int _quantity = 0;
   String formattedDate = '';
+  double totalPayablesOfDay = 0.0;
+  double totalRecivablesOfDay = 0.0;
 
   // Example type and percentage options
   final List<String> _typeOptions = [
@@ -56,10 +59,9 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         .split(' ')[0]; // Get today's date in format 'yyyy-mm-dd'
 
     List<String> parts = currentDate.split('-');
-    // formattedDate =
-    //     '${parts[2]}-${parts[1]}-${parts[0]}';
+    formattedDate = '${parts[2]}-${parts[1]}-${parts[0]}';
     // Reversing the date format to 'dd-mm-yyyy'
-    formattedDate = '06-10-2024';
+    // formattedDate = '06-10-2024';
   }
 
   @override
@@ -67,7 +69,7 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Input Data",
+          "Order Page",
           style: GoogleFonts.rowdies(
             textStyle: const TextStyle(
               color: Colors.black,
@@ -141,7 +143,7 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
                     //navigating to homeScreen
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      MaterialPageRoute(builder: (context) => RecordsScreen()),
                     );
                   },
                   child: Text("Save Transaction"),
@@ -224,7 +226,7 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
     return false;
   }
 
-  Future<void> getDayPayables() async {
+  Future<int> getDayPayables() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     try {
@@ -241,12 +243,28 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         // print(
         //     ' data from str : ${docSnapshot.data()?['totalWeight'].toString()}');
 
-        // String totalWeight_ = docSnapshot.data()!['totalWeight'];
-        // String totalCount_ = docSnapshot.data()!['totalCount'];
-        // ToastMessage.toast_('2');
+        String totalPayablesOfDay_ = docSnapshot.data()!['totalPayablesOfDay'];
+        String totalRecivablesOfDay_ = docSnapshot.data()!['totalRecivablesOfDay'];
+        ToastMessage.toast_('2');
+        totalPayablesOfDay = double.tryParse(totalPayablesOfDay_) ?? 0.0;
+        totalRecivablesOfDay = double.tryParse(totalRecivablesOfDay_) ?? 0.0;
+        try {
+          QuerySnapshot<Map<String, dynamic>> dayData = await firestore
+              .collection(Collectionnames.mainCollectionName)
+              .doc(Collectionnames.dialyTransactionDoc)
+              .collection(formattedDate)
+              .get();
 
-        // totalWeight = double.tryParse(totalWeight_) ?? 0.0;
-        // totalCount = int.tryParse(totalCount_) ?? 0;
+          if (dayData.docs.isNotEmpty) {
+            var length = dayData.docs.length;
+            print("length : $length");
+            return length;
+          } else {
+            print("No doc so length is 0");
+          }
+        } catch (e) {
+          print("error at dataData fetch : $e");
+        }
       } else {
         try {
           await firestore
@@ -255,8 +273,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
               .collection(Collectionnames.allDataCollection)
               .doc(formattedDate)
               .set({
-            'totalPayables': '0.000',
-            'totalRecivables': '0.000',
+            'totalPayablesOfDay': '0.000',
+            'totalRecivablesOfDay': '0.000',
             'timeStamp': Timestamp.now(),
           });
         } catch (e) {
@@ -265,8 +283,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
       }
     } catch (e) {
       print('Error in the first method : $e');
-      return null;
     }
+    return 0;
   }
 
   // Method to save the transaction data
@@ -284,7 +302,9 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
       }
       bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
       if (doesUserExist) {
-        await getDayPayables();
+       var length =  await getDayPayables();
+       var generatedBarCode = '$formattedDate-$length' ;
+       print("generatedBar : $generatedBarCode");
 
         final weight = _advanceGoldCtrl.text;
 
@@ -297,9 +317,16 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
           'name': _nameCtrl.text,
           'phoneNumber': _phoneNumberCtrl.text,
           'city': _cityCtrl.text,
+          'generatedBarCode': generatedBarCode,
           'advanceGold': weight.toString(),
           'typeAndPercentage': typesAndPercentages,
-          'timestamp': Timestamp.now(),
+          'ornamentWeight': '0.000',
+          'pendingGold': '0.000',
+          'payables': 'NA',
+          'receivables': 'NA',
+          'active': 'Y',
+          'transactionClosed': 'N',
+          'timeStamp': Timestamp.now(),
         }).then((value) {
           print('Data Added.');
         }).catchError((error) {

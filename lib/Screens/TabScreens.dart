@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:leelacasting/Screens/HomeScreen.dart';
 import 'package:leelacasting/Screens/PayablesScreen.dart';
 import 'package:leelacasting/Screens/ReceivablesScreen.dart';
+import 'package:leelacasting/Screens/RecordScreen.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
 
 class TabsScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class TabsScreen extends StatefulWidget {
 class _TabScreenState extends State<TabsScreen> {
   int _currentIndex = 0;
   final List<Widget> _pages = [
-    HomeScreen(),
+    RecordsScreen(),
     const ReceivablesScreen(),
     const PayablesScreen()
   ];
