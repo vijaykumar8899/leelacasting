@@ -11,6 +11,7 @@ import 'package:leelacasting/Screens/HomeScreen.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CalculateScreen extends StatefulWidget {
   String collectionPath;
@@ -28,10 +29,37 @@ class _CalculateScreenState extends State<CalculateScreen> {
   final firestore = FirebaseFirestore.instance;
   final storage = FirebaseStorage.instance;
   bool isLoading = false;
+  double advanceGold = 0.0;
+  double ornamentWeight = 0.0;
+  bool showCalculationField = false;
+  String percentage = '';
+  double ornamentcostWithPer = 0.0;
+  double resultMoney = 0.0;
+  int todaysGoldPrice = 0;
 
   @override
   void initState() {
     super.initState();
+    getFieldsToSharedPref();
+  }
+
+  getFieldsToSharedPref() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    advanceGold = prefs.getDouble('advanceGold') ?? 0.0;
+    ornamentWeight = prefs.getDouble('ornamentWeight') ?? 0.0;
+    percentage = prefs.getString('percentage') ?? '';
+    todaysGoldPrice = prefs.getInt('todaysGoldPrice') ?? 0;
+    if(ornamentWeight > 0.0){
+      setState(() {
+        showCalculationField=true;
+      });
+    }
+
+    print("percentage : $percentage");
+    print("ornamentWeight : $ornamentWeight");
+    print("advanceGold : $advanceGold");
+    print('showCalculationField : $showCalculationField');
   }
 
   saveOrnamentWeightToFirebase() async {
@@ -42,9 +70,57 @@ class _CalculateScreenState extends State<CalculateScreen> {
           .collection(widget.collectionPath)
           .doc(widget.docId)
           .update({'ornamentWeight': ornamentWeightCtrl.text});
+
+      // calculatingAmount();
     } catch (e) {
       print("error in set : $e");
     }
+  }
+
+  calculatingAmount() {
+    try {
+      print("calculatingAmount");
+      var percentage_ = double.parse(percentage);
+      setState(() {
+        ornamentcostWithPer = (ornamentWeight * percentage_) / 100;
+        print("ornamentcostWithPer : $ornamentcostWithPer");
+        resultMoney = ornamentcostWithPer * todaysGoldPrice;
+      });
+    }catch(e){
+      print("error calculatingMoney $e");
+    }
+
+  }
+
+  Widget displayAmount() {
+    calculatingAmount();
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(5)),
+        color: AppColors.secondaryClr,
+        border: Border.all(
+          color: Colors.white70,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextBoxNormal(
+                text: ornamentWeight.toStringAsFixed(3),
+              ),
+              TextBoxNormal(text: " * "),
+              TextBoxNormal(text: "$percentage%"),
+            ],
+          ),
+          TextBoxNormal(text: "= ${ornamentcostWithPer.toStringAsFixed(3)} * $todaysGoldPrice"),
+          TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
+        ],
+      ),
+    );
   }
 
   Future<void> takeOrnamentWeight(BuildContext context) async {
@@ -90,6 +166,44 @@ class _CalculateScreenState extends State<CalculateScreen> {
     );
   }
 
+  void initializeMethods() async{
+   await getFieldsToSharedPref();
+    await calculatingAmount();
+  }
+
+  // Widget dummy() {
+  //   print('in dummy');
+  //   initializeMethods();
+  //   return SizedBox(height: 5,);
+  // }
+
+  Future<void> saveFinalCalculationToFirebase() async{
+    await firestore
+        .collection(Collectionnames.mainCollectionName)
+        .doc(Collectionnames.dialyTransactionDoc)
+        .collection(formattedDate)
+        .doc(length.toString())
+        .set({
+      'name': _nameCtrl.text,
+      'phoneNumber': _phoneNumberCtrl.text,
+      'city': _cityCtrl.text,
+      'generatedBarCode': generatedBarCode,
+      'advanceGold': weight.toString(),
+      'typeAndPercentage': typesAndPercentages,
+      'ornamentWeight': '0.000',
+      'pendingGold': '0.000',
+      'payables': 'NA',
+      'receivables': 'NA',
+      'active': 'Y',
+      'transactionClosed': 'N',
+      'timeStamp': Timestamp.now(),
+    }).then((value) {
+      print('Data Added.');
+    }).catchError((error) {
+      print('Error : $error');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,36 +232,46 @@ class _CalculateScreenState extends State<CalculateScreen> {
         backgroundColor: AppColors.primaryClr,
       ),
       body: Stack(
-        children:[ Center(
-          child: Column(
-            children: [
-              FetchDataOfPaticularRecord(
-                collectionPath: widget.collectionPath,
-                docId: widget.docId,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  takeOrnamentWeight(context);
-                },
-                child: const Text('Enter Ornament Weight'),
-              ),
+        children: [
+          Center(
+            child: Column(
+              children: [
+                FetchDataOfPaticularRecord(
+                  collectionPath: widget.collectionPath,
+                  docId: widget.docId,
+                ),
 
+                SizedBox(height: 20,),
+                if (!showCalculationField) ...[
+                  ElevatedButton(
+                    onPressed: () async {
+                      takeOrnamentWeight(context);
+                    },
+                    child: const Text('Enter Ornament Weight'),
+                  ),
+                ] else ...[
+                SizedBox(height: 20,),
+                //calculating payables
+                displayAmount(),
+                  SizedBox(height: 20,),
 
-
-              CalculatingPayablesAndRecivables(),
-
-            ],
+                  ElevatedButton(
+                    onPressed: () async {
+                     await saveFinalCalculationToFirebase();
+                    },
+                    child: const Text('Print'),
+                  ),                ],
+              ],
+            ),
           ),
-        ),
-                if (isLoading) const LoadingIndicator(),
-
+          if (isLoading) const LoadingIndicator(),
         ],
       ),
     );
   }
 }
 
-class FetchDataOfPaticularRecord extends StatelessWidget {
+class FetchDataOfPaticularRecord extends StatefulWidget {
   final String collectionPath;
   final String docId;
 
@@ -155,13 +279,35 @@ class FetchDataOfPaticularRecord extends StatelessWidget {
       {super.key, required this.collectionPath, required this.docId});
 
   @override
+  State<FetchDataOfPaticularRecord> createState() =>
+      _FetchDataOfPaticularRecordState();
+}
+
+class _FetchDataOfPaticularRecordState
+    extends State<FetchDataOfPaticularRecord> {
+  double advanceGold = 0.0;
+  double ornamentWeight = 0.0;
+  String percentage = '';
+
+  saveFieldsToSharedPref() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('advanceGold', advanceGold);
+      await prefs.setDouble('ornamentWeight', ornamentWeight);
+      await prefs.setString('percentage', percentage);
+    } catch (e) {
+      print("error in set : $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Create a stream to listen to the document data.
     var stream_ = FirebaseFirestore.instance
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
-        .collection(collectionPath) // Specify the collection
-        .doc(docId)
+        .collection(widget.collectionPath) // Specify the collection
+        .doc(widget.docId)
         .snapshots();
 
     return Container(
@@ -193,7 +339,20 @@ class FetchDataOfPaticularRecord extends StatelessWidget {
           DateTime dateTime = timeStamp.toDate();
           List<dynamic> typeAndPercentageList = doc['typeAndPercentage'];
           var ornamentWeight_ = doc['ornamentWeight'];
-          double ornamentWeight = double.parse(ornamentWeight_);
+          ornamentWeight = double.parse(ornamentWeight_);
+          advanceGold = double.parse(doc['advanceGold']);
+          List<String> percentages = typeAndPercentageList
+              .map((item) =>
+                  item['percentage'] as String) // Adjust the type as necessary
+              .toList();
+
+// Access the first percentage
+          if (percentages.isNotEmpty) {
+            percentage = percentages[0];
+          } else {
+            print('No percentages found');
+          }
+          saveFieldsToSharedPref();
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -208,16 +367,17 @@ class FetchDataOfPaticularRecord extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     BarcodeWidget(
-              barcode: Barcode.code128(), // Choose the barcode type
-              data: doc['generatedBarCode'], // The text to be converted into a barcode
-              width: 250,
-              height: 50,
-              drawText: true, // Display the text below the barcode
-            ),
-            SizedBox(height: 10),
-            // Display the text as a label below the barcode
-            
+                    BarcodeWidget(
+                      barcode: Barcode.code128(), // Choose the barcode type
+                      data: doc[
+                          'generatedBarCode'], // The text to be converted into a barcode
+                      width: 250,
+                      height: 50,
+                      drawText: true, // Display the text below the barcode
+                    ),
+                    SizedBox(height: 10),
+                    // Display the text as a label below the barcode
+
                     Row(
                       children: [
                         TextBoxBold(text: "Customer Name :"),
@@ -298,7 +458,6 @@ class FetchDataOfPaticularRecord extends StatelessWidget {
     );
   }
 }
-
 
 class CalculatingPayablesAndRecivables extends StatelessWidget {
   const CalculatingPayablesAndRecivables({super.key});

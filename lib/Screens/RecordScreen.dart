@@ -145,8 +145,12 @@ class _RecordsScreenState extends State<RecordsScreen> {
               leading: Icon(Icons.currency_rupee_sharp),
               title: Text("Today's Gold Rate"),
               onTap: () async {
-                await GoldRateInput();
-                Navigator.pop(context); // Close the drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GoldRateInput(),
+                  ),
+                );
               },
             ),
           ],
@@ -384,8 +388,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return TransactionDialog(
-                                      collectionPath:
-                                      widget.collectionPath,
+                                      collectionPath: widget.collectionPath,
                                       docId: doc.id,
                                     );
                                   },
