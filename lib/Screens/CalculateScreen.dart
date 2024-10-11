@@ -8,6 +8,7 @@ import 'package:leelacasting/CommonWidgets/InputField.dart';
 import 'package:leelacasting/CommonWidgets/Loading.dart';
 import 'package:leelacasting/CommonWidgets/SizedBoxAndBoldNormalText.dart';
 import 'package:leelacasting/Screens/HomeScreen.dart';
+import 'package:leelacasting/Screens/TabScreens.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
@@ -36,6 +37,12 @@ class _CalculateScreenState extends State<CalculateScreen> {
   double ornamentcostWithPer = 0.0;
   double resultMoney = 0.0;
   int todaysGoldPrice = 0;
+  double pendingGold = 0.0;
+  String payables = 'N';
+  String receivables = 'N';
+  String active = 'Y';
+  String transactionClosed = 'N';
+  bool transactionClosed_ = false;
 
   @override
   void initState() {
@@ -50,9 +57,9 @@ class _CalculateScreenState extends State<CalculateScreen> {
     ornamentWeight = prefs.getDouble('ornamentWeight') ?? 0.0;
     percentage = prefs.getString('percentage') ?? '';
     todaysGoldPrice = prefs.getInt('todaysGoldPrice') ?? 0;
-    if(ornamentWeight > 0.0){
+    if (ornamentWeight > 0.0) {
       setState(() {
-        showCalculationField=true;
+        showCalculationField = true;
       });
     }
 
@@ -84,12 +91,28 @@ class _CalculateScreenState extends State<CalculateScreen> {
       setState(() {
         ornamentcostWithPer = (ornamentWeight * percentage_) / 100;
         print("ornamentcostWithPer : $ornamentcostWithPer");
-        resultMoney = ornamentcostWithPer * todaysGoldPrice;
+        if (advanceGold != 0.0) {
+          pendingGold = ornamentcostWithPer - advanceGold;
+        }
+        resultMoney = pendingGold * todaysGoldPrice;
+
+        if (pendingGold > 0.0) {
+          setState(() {
+            receivables = 'Y';
+            payables = 'N';
+            active = 'Y';
+          });
+        } else {
+          setState(() {
+            receivables = 'NA';
+            payables = 'NA';
+            active = 'N';
+          });
+        }
       });
-    }catch(e){
+    } catch (e) {
       print("error calculatingMoney $e");
     }
-
   }
 
   Widget displayAmount() {
@@ -116,7 +139,11 @@ class _CalculateScreenState extends State<CalculateScreen> {
               TextBoxNormal(text: "$percentage%"),
             ],
           ),
-          TextBoxNormal(text: "= ${ornamentcostWithPer.toStringAsFixed(3)} * $todaysGoldPrice"),
+          TextBoxNormal(
+              text:
+                  "= ${ornamentcostWithPer.toStringAsFixed(3)} - $advanceGold"),
+          TextBoxNormal(
+              text: "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
           TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
         ],
       ),
@@ -166,8 +193,8 @@ class _CalculateScreenState extends State<CalculateScreen> {
     );
   }
 
-  void initializeMethods() async{
-   await getFieldsToSharedPref();
+  void initializeMethods() async {
+    await getFieldsToSharedPref();
     await calculatingAmount();
   }
 
@@ -177,31 +204,31 @@ class _CalculateScreenState extends State<CalculateScreen> {
   //   return SizedBox(height: 5,);
   // }
 
-  Future<void> saveFinalCalculationToFirebase() async{
+  Future<void> saveFinalCalculationToFirebase() async {
     await firestore
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
-        .collection(formattedDate)
-        .doc(length.toString())
-        .set({
-      'name': _nameCtrl.text,
-      'phoneNumber': _phoneNumberCtrl.text,
-      'city': _cityCtrl.text,
-      'generatedBarCode': generatedBarCode,
-      'advanceGold': weight.toString(),
-      'typeAndPercentage': typesAndPercentages,
-      'ornamentWeight': '0.000',
-      'pendingGold': '0.000',
-      'payables': 'NA',
-      'receivables': 'NA',
-      'active': 'Y',
-      'transactionClosed': 'N',
+        .collection(widget.collectionPath)
+        .doc(widget.docId)
+        .update({
+      'pendingGold': pendingGold,
+      'payables': payables,
+      'receivables': receivables,
+      'active': active,
+      'transactionClosed': transactionClosed,
       'timeStamp': Timestamp.now(),
     }).then((value) {
       print('Data Added.');
     }).catchError((error) {
       print('Error : $error');
     });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TabsScreen(),
+      ),
+    );
   }
 
   @override
@@ -240,8 +267,9 @@ class _CalculateScreenState extends State<CalculateScreen> {
                   collectionPath: widget.collectionPath,
                   docId: widget.docId,
                 ),
-
-                SizedBox(height: 20,),
+                SizedBox(
+                  height: 20,
+                ),
                 if (!showCalculationField) ...[
                   ElevatedButton(
                     onPressed: () async {
@@ -250,17 +278,44 @@ class _CalculateScreenState extends State<CalculateScreen> {
                     child: const Text('Enter Ornament Weight'),
                   ),
                 ] else ...[
-                SizedBox(height: 20,),
-                //calculating payables
-                displayAmount(),
-                  SizedBox(height: 20,),
-
+                  SizedBox(
+                    height: 20,
+                  ),
+                  //calculating payables
+                  displayAmount(),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    children: [
+                      TextBoxNormal(text: "Transaction Closed : "),
+                      Switch(
+                        value: transactionClosed_,
+                        onChanged: (value) {
+                          setState(() {
+                            transactionClosed_ = value;
+                          });
+                        },
+                        activeColor: Colors.black, // Color when switch is on
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
                   ElevatedButton(
                     onPressed: () async {
-                     await saveFinalCalculationToFirebase();
+                      setState(() {
+                        isLoading=true;
+                      });
+                      await saveFinalCalculationToFirebase();
+                      setState(() {
+                        isLoading=false;
+                      });
                     },
-                    child: const Text('Print'),
-                  ),                ],
+                    child: const Text('Print Transction'),
+                  ),
+                ],
               ],
             ),
           ),
