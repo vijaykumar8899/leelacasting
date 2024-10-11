@@ -254,6 +254,9 @@ class FetchDataOfPaticularRecord extends StatelessWidget {
                               TextBoxBold(text: "Type : "),
                               SpaceBox(size: 20),
                               TextBoxNormal(
+                                text: "${item['type']} ",
+                              ),
+                              TextBoxNormal(
                                 text: "${item['percentage']}%",
                               ),
                             ],
@@ -265,6 +268,9 @@ class FetchDataOfPaticularRecord extends StatelessWidget {
                         children: [
                           TextBoxBold(text: "Type"),
                           SpaceBox(size: 20),
+                          TextBoxNormal(
+                            text: "${doc['type']}",
+                          ),
                           TextBoxNormal(
                             text: "${doc['typeAndPercentage']}",
                           ),

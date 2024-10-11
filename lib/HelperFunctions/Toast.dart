@@ -7,7 +7,7 @@ class ToastMessage {
       msg: message,
       toastLength: Toast.LENGTH_SHORT, // Duration for the toast message
       gravity: ToastGravity.BOTTOM, // Position of the toast message
-      backgroundColor: Colors.red, // Background color of the toast
+      // backgroundColor: Colors.red,
       textColor: Colors.white, // Text color of the toast
       fontSize: 16.0, // Font size of the toast text
     );

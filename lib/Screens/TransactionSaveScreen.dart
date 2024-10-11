@@ -3,7 +3,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:leelacasting/CommonWidgets/TransctionDialog.dart';
 import 'package:leelacasting/HelperFunctions/Toast.dart';
+import 'package:leelacasting/Screens/CalculateScreen.dart';
 import 'package:leelacasting/Screens/HomeScreen.dart';
 import 'package:leelacasting/Screens/RecordScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
@@ -26,10 +28,12 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
   TextEditingController _advanceGoldCtrl = TextEditingController();
 
   // Lists to store selected values
-  List<String?> _selectedTypeValues = [];
+  // List<String?> _selectedTypeValues = [];
+  List<String?> _selectedTypeValues = List.generate(1, (index) => null);
   bool isLoading = false;
   int _quantity = 0;
   String formattedDate = '';
+  var length;
   double totalPayablesOfDay = 0.0;
   double totalRecivablesOfDay = 0.0;
 
@@ -118,18 +122,28 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
                   keyboardType: TextInputType.number,
                   controller: _advanceGoldCtrl,
                 ),
-                buildTextFormField(
-                  labelText: "Quantity",
-                  keyboardType: TextInputType.number,
-                  controller: _quantityCtrl,
-                  onChanged: (value) {
+                // buildTextFormField(
+                //   labelText: "Quantity",
+                //   keyboardType: TextInputType.number,
+                //   controller: _quantityCtrl,
+                //   onChanged: (value) {
+                //     setState(() {
+                //       _quantity = int.tryParse(value) ?? 0;
+                //       _updateDropdownFields();
+                //     });
+                //   },
+                // ),
+                // _buildDynamicFields(),
+                _buildDropdownField(
+                  labelText: "Select Type",
+                  items: _typeOptions,
+                  value: _selectedTypeValues[0],
+                  onChanged: (String? newValue) {
                     setState(() {
-                      _quantity = int.tryParse(value) ?? 0;
-                      _updateDropdownFields();
+                      _selectedTypeValues[0] = newValue;
                     });
                   },
                 ),
-                _buildDynamicFields(),
                 ElevatedButton(
                   onPressed: () async {
                     setState(() {
@@ -138,13 +152,19 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
                     await _saveTransaction();
 
                     setState(() {
-                      _quantity = 0;
+                      _quantity = 1;
+                      isLoading = false;
                     });
                     ToastMessage.toast_("Data Saved.");
                     //navigating to homeScreen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RecordsScreen()),
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return TransactionDialog(
+                          collectionPath: formattedDate,
+                          docId: length.toString(),
+                        );
+                      },
                     );
                   },
                   child: Text("Save Transaction"),
@@ -173,27 +193,34 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
     );
   }
 
+  // displayTransactionCopy(){
+  //   FetchDataOfPaticularRecord(
+  //     collectionPath: collection,
+  //     docId: widget.docId,
+  //   ),
+  // }
+
   // Method to build dynamic type fields based on the entered quantity
-  Widget _buildDynamicFields() {
-    List<Widget> fields = [];
-    for (int i = 0; i < _quantity; i++) {
-      fields.add(_buildDropdownField(
-        labelText: "Type ${i + 1}",
-        value: _selectedTypeValues[i],
-        items: _typeOptions,
-        onChanged: (String? newValue) {
-          setState(() {
-            _selectedTypeValues[i] = newValue;
-          });
-        },
-      ));
-    }
-    return Expanded(
-      child: ListView(
-        children: fields,
-      ),
-    );
-  }
+  // Widget _buildDynamicFields() {
+  //   List<Widget> fields = [];
+  //   for (int i = 0; i < _quantity; i++) {
+  //     fields.add(_buildDropdownField(
+  //       labelText: "Type ${i + 1}",
+  //       value: _selectedTypeValues[i],
+  //       items: _typeOptions,
+  //       onChanged: (String? newValue) {
+  //         setState(() {
+  //           _selectedTypeValues[i] = newValue;
+  //         });
+  //       },
+  //     ));
+  //   }
+  //   return Expanded(
+  //     child: ListView(
+  //       children: fields,
+  //     ),
+  //   );
+  // }
 
   // Method to update dropdown field lists when quantity changes
   void _updateDropdownFields() {
@@ -293,18 +320,25 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
   Future<void> _saveTransaction() async {
     try {
       List<Map<String, String?>> typesAndPercentages = [];
-      for (int i = 0; i < _quantity; i++) {
-        final selectedType = _selectedTypeValues[i];
-        final percentage = _typePercentageMap[selectedType ?? ''];
 
-        typesAndPercentages.add({
-          'type': selectedType,
-          'percentage': percentage,
-        });
-      }
+      // for (int i = 0; i < _quantity; i++) {
+      //   final selectedType = _selectedTypeValues[i];
+      //   final percentage = _typePercentageMap[selectedType ?? ''];
+      //
+      //   typesAndPercentages.add({
+      //     'type': selectedType,
+      //     'percentage': percentage,
+      //   });
+      // }_
+      final selectedType = _selectedTypeValues[0];
+      final percentage = _typePercentageMap[selectedType ?? ''];
+      typesAndPercentages.add({
+        'type': selectedType,
+        'percentage': percentage,
+      });
       bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
       if (doesUserExist) {
-        var length = await getDayPayables();
+        length = await getDayPayables();
         var generatedBarCode = '$formattedDate-$length';
         print("generatedBar : $generatedBarCode");
 
@@ -315,7 +349,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
             .collection(Collectionnames.mainCollectionName)
             .doc(Collectionnames.dialyTransactionDoc)
             .collection(formattedDate)
-            .add({
+            .doc(length.toString())
+            .set({
           'name': _nameCtrl.text,
           'phoneNumber': _phoneNumberCtrl.text,
           'city': _cityCtrl.text,
@@ -347,10 +382,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
       _phoneNumberCtrl.clear();
       _cityCtrl.clear();
       _advanceGoldCtrl.clear();
-      _selectedTypeValues = [];
 
       isLoading = false;
-      Navigator.of(context).pop();
     });
   }
 }

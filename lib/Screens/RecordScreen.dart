@@ -13,6 +13,8 @@ import 'package:leelacasting/Utilites/Colors.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../CommonWidgets/TransctionDialog.dart';
+
 class RecordsScreen extends StatefulWidget {
   @override
   State<RecordsScreen> createState() => _RecordsScreenState();
@@ -142,7 +144,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
             ListTile(
               leading: Icon(Icons.currency_rupee_sharp),
               title: Text("Today's Gold Rate"),
-              onTap: () async{
+              onTap: () async {
                 await GoldRateInput();
                 Navigator.pop(context); // Close the drawer
               },
@@ -278,7 +280,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
         .collection(widget.collectionPath)
-        .where('active', isEqualTo: "Y")
+        .orderBy('timeStamp', descending: true)
         .snapshots();
 
     return Stack(
@@ -377,8 +379,19 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                               ],
                             ),
                             IconButton(
-                              onPressed: () {},
-                              icon: const Icon(FontAwesomeIcons.arrowDown),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return TransactionDialog(
+                                      collectionPath:
+                                      widget.collectionPath,
+                                      docId: doc.id,
+                                    );
+                                  },
+                                );
+                              },
+                              icon: const Icon(FontAwesomeIcons.print),
                             ),
                           ],
                         ),
