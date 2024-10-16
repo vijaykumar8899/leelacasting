@@ -23,13 +23,15 @@ class ColumnBox extends StatelessWidget {
 
 class TextBoxBold extends StatelessWidget {
   String text; // Use camelCase for variable names
+  final TextOverflow? overflow;
 
-  TextBoxBold({required this.text});
+  TextBoxBold({required this.text, this.overflow});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text, // Use the 'text' parameter here
+      overflow: overflow,
       style: const TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 18.0,
@@ -41,13 +43,15 @@ class TextBoxBold extends StatelessWidget {
 
 class TextBoxNormal extends StatelessWidget {
   String text; // Use camelCase for variable names
+  final TextOverflow? overflow;
 
-  TextBoxNormal({required this.text});
+  TextBoxNormal({required this.text, this.overflow});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
+      overflow: overflow,
       style: const TextStyle(
         fontWeight: FontWeight.normal,
         fontSize: 18.0,

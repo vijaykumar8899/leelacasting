@@ -16,7 +16,7 @@ class _TabScreenState extends State<TabsScreen> {
   final List<Widget> _pages = [
     RecordsScreen(),
     const ReceivablesScreen(),
-    const PayablesScreen()
+    PayablesScreen()
   ];
 
   changeIndex(selectedIndex) {

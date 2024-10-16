@@ -380,7 +380,7 @@ class _FetchDataOfPaticularRecordState
 
           // Show loading indicator while waiting for data
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: const LoadingIndicator());
           }
 
           // Check if the snapshot has data and the document exists
@@ -514,11 +514,3 @@ class _FetchDataOfPaticularRecordState
   }
 }
 
-class CalculatingPayablesAndRecivables extends StatelessWidget {
-  const CalculatingPayablesAndRecivables({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}

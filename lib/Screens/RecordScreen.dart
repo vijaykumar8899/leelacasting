@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,14 +8,18 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/CommonWidgets/InputField.dart';
 import 'package:leelacasting/CommonWidgets/Loading.dart';
+import 'package:leelacasting/HelperFunctions/Wathsapp.dart';
 import 'package:leelacasting/Screens/CalculateScreen.dart';
 import 'package:leelacasting/Screens/GoldRateInput.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
-
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:path_provider/path_provider.dart';
 
+import '../CommonWidgets/SizedBoxAndBoldNormalText.dart';
 import '../CommonWidgets/TransctionDialog.dart';
 
 class RecordsScreen extends StatefulWidget {
@@ -26,11 +33,31 @@ class _RecordsScreenState extends State<RecordsScreen> {
   late SharedPreferences prefs;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+
+
   @override
   void initState() {
     super.initState();
     fetchAllDocuments();
   }
+
+  Future<String> scanBarcode() async {
+    try {
+      String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+        "#ff6666", // The color of the scan line
+        "Cancel", // The text for the cancel button
+        true, // Whether to show the flash icon
+        ScanMode.BARCODE, // Scan mode for barcode
+      );
+
+      // Return the scanned barcode
+      return barcodeScanRes;
+    } catch (e) {
+      // Handle errors or cancellation
+      return "-1"; // Return "-1" in case of an error or cancellation
+    }
+  }
+
 
   Future<QuerySnapshot<Map<String, dynamic>>>
       fetchAllDocumentSnapshots() async {
@@ -51,8 +78,6 @@ class _RecordsScreenState extends State<RecordsScreen> {
         .orderBy('timeStamp', descending: true)
         .get();
 
-    // Initialize the arrow count with the snapshot length
-
     return snapshot;
   }
 
@@ -63,7 +88,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          "Home Page",
+          "Leela Casting",
           style: GoogleFonts.rowdies(
             textStyle: const TextStyle(
               color: Colors.black,
@@ -83,7 +108,31 @@ class _RecordsScreenState extends State<RecordsScreen> {
             padding: const EdgeInsets.only(right: 16.0),
             child: IconButton(
               icon: const Icon(FontAwesomeIcons.barcode),
-              onPressed: () async {},
+              onPressed: () async {
+                String scannedBarcode = await scanBarcode();
+
+                // Handle the scanned barcode (for example, you can show it in a dialog)
+                if (scannedBarcode != "-1") {
+                  print('Scanned Barcode: $scannedBarcode');
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Scanned Barcode'),
+                        content: Text(scannedBarcode),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
             ),
           ),
         ],
@@ -161,7 +210,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: CircularProgressIndicator(),
+              child: const LoadingIndicator(),
             );
           } else if (snapshot.hasError) {
             return Center(
@@ -229,8 +278,8 @@ class _DayDisplayContainerState extends State<DayDisplayContainer> {
     return Column(
       children: [
         Container(
-          height: MediaQuery.of(context).size.height - 780,
-          width: MediaQuery.of(context).size.width - 100,
+          height: MediaQuery.of(context).size.height * 0.04,
+          width: MediaQuery.of(context).size.width - 40,
           margin: EdgeInsets.all(8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -274,9 +323,30 @@ class DisplayDataFromFirebase extends StatefulWidget {
 }
 
 class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
-  TextEditingController ornamentWeightCtrl = TextEditingController();
   bool isLoading = false;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final _screenShotController = ScreenshotController();
+
+
+  Future<void> captureAndSaveScreenshot() async {
+    try {
+      // Capture the screenshot
+      final image = await _screenShotController.capture();
+
+      // Get the directory to save the file
+      final directory = await getApplicationDocumentsDirectory();
+
+      // Generate the file path and save the image
+      final imagePath = '${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
+      final imageFile = File(imagePath);
+      await imageFile.writeAsBytes(image!);
+      print('Screenshot saved at $imagePath');
+    } catch (e) {
+      print('Error capturing screenshot: $e');
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +357,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
         .orderBy('timeStamp', descending: true)
         .snapshots();
 
-    return Stack(
+    return Column(
       children: [
         Container(
           width: MediaQuery.of(context).size.width - 30,
@@ -304,7 +374,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
               }
 
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: const LoadingIndicator());
               }
 
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -341,60 +411,118 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                         padding: const EdgeInsets.all(8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          // crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text("Name : ${doc['name']}"),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Text("City : ${doc['city']}"),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                        "Phone Number : ${doc['phoneNumber']}"),
-                                  ],
-                                ),
-                                if (doc['typeAndPercentage'] is List) ...[
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: typeAndPercentageList.map((item) {
-                                      return Row(
-                                        children: [
-                                          Text("Type: ${item['type']}"),
-                                          SizedBox(width: 10),
-                                          Text(
-                                              "Percentage: ${item['percentage']}%"),
-                                        ],
-                                      );
-                                    }).toList(),
+                            Screenshot(
+                              controller: _screenShotController,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  BarcodeWidget(
+                                    barcode: Barcode.code128(), // Choose the barcode type
+                                    data: doc[
+                                    'generatedBarCode'], // The text to be converted into a barcode
+                                    width: 250,
+                                    height: 50,
+                                    drawText: true, // Display the text below the barcode
                                   ),
-                                ] else ...[
-                                  Text(
-                                      "typeAndPercentage: ${doc['typeAndPercentage']}"),
-                                ]
-                              ],
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      TextBoxBold(text: "Customer Name "),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: ": ${doc['name']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      TextBoxBold(text: "City "),
+                                      SpaceBox(size: 60),
+                                      TextBoxNormal(
+                                        text: ": ${doc['city']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextBoxBold(text: "PhoneNumber"),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: "${doc['phoneNumber']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextBoxBold(text: "Advance Gold :"),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: "${doc['advanceGold']}",
+                                      ),
+                                    ],
+                                  ),
+                                  if (doc['typeAndPercentage'] is List) ...[
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: typeAndPercentageList.map((item) {
+                                        return Row(
+                                          children: [
+                                            TextBoxBold(text: "Type : "),
+                                            SpaceBox(size: 20),
+                                            TextBoxNormal(
+                                              text: "${item['type']} ",
+                                            ),
+                                            TextBoxNormal(
+                                              text: "${item['percentage']}%",
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                            IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return TransactionDialog(
-                                      collectionPath: widget.collectionPath,
-                                      docId: doc.id,
+                            Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () async{
+                                    setState(() {
+                                      isLoading=true;
+                                    });
+                                    // Capture screenshot and save it
+                                    await captureAndSaveScreenshot();
+
+
+                                   await Wathsapp.sendMessageToCustomerFromWhatsApp(doc['phoneNumber'], doc['name']);
+                                    setState(() {
+                                      isLoading=true;
+                                    });
+                                  },
+                                  icon: const Icon(FontAwesomeIcons.whatsapp),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return TransactionDialog(
+                                          collectionPath: widget.collectionPath,
+                                          docId: doc.id,
+                                        );
+                                      },
                                     );
                                   },
-                                );
-                              },
-                              icon: const Icon(FontAwesomeIcons.print),
+                                  icon: const Icon(FontAwesomeIcons.print),
+                                ),
+                              ],
                             ),
                           ],
                         ),
