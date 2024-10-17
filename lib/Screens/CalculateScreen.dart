@@ -17,9 +17,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CalculateScreen extends StatefulWidget {
   String collectionPath;
   String docId;
+  String history;
+  String transaction;
 
   CalculateScreen(
-      {super.key, required this.collectionPath, required this.docId});
+      {super.key,
+      required this.collectionPath,
+      required this.docId,
+      required this.history,
+      required this.transaction});
 
   @override
   State<CalculateScreen> createState() => _CalculateScreenState();
@@ -43,11 +49,19 @@ class _CalculateScreenState extends State<CalculateScreen> {
   String active = 'Y';
   String transactionClosed = 'N';
   bool transactionClosed_ = false;
+  bool isHistory = false;
+  bool isTransactionClosedByHistory = false;
 
   @override
   void initState() {
     super.initState();
     getFieldsToSharedPref();
+    if (widget.history != null) {
+      isHistory = true;
+    }
+    if (widget.transaction == 'Y') {
+      isTransactionClosedByHistory = true;
+    }
   }
 
   getFieldsToSharedPref() async {
@@ -142,8 +156,14 @@ class _CalculateScreenState extends State<CalculateScreen> {
           TextBoxNormal(
               text:
                   "= ${ornamentcostWithPer.toStringAsFixed(3)} - $advanceGold"),
-          TextBoxNormal(
-              text: "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
+          if (isHistory) ...[
+            TextBoxNormal(
+                text:
+                    "= ${pendingGold.toStringAsFixed(3)} * ${widget.history}"),
+          ] else ...[
+            TextBoxNormal(
+                text: "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
+          ],
           TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
         ],
       ),
@@ -179,8 +199,11 @@ class _CalculateScreenState extends State<CalculateScreen> {
                     });
                     await saveOrnamentWeightToFirebase();
                     setState(() {
+                      var orWeight = double.parse(ornamentWeightCtrl.text) ?? 1.0 ;
+                      ornamentWeight = orWeight;
                       isLoading = false;
                     });
+                    // getFieldsToSharedPref();
                     Navigator.of(context).pop();
                   },
                   child: const Text('Submit'),
@@ -193,17 +216,6 @@ class _CalculateScreenState extends State<CalculateScreen> {
     );
   }
 
-  void initializeMethods() async {
-    await getFieldsToSharedPref();
-    await calculatingAmount();
-  }
-
-  // Widget dummy() {
-  //   print('in dummy');
-  //   initializeMethods();
-  //   return SizedBox(height: 5,);
-  // }
-
   Future<void> saveFinalCalculationToFirebase() async {
     await firestore
         .collection(Collectionnames.mainCollectionName)
@@ -214,6 +226,8 @@ class _CalculateScreenState extends State<CalculateScreen> {
       'pendingGold': pendingGold,
       'payables': payables,
       'receivables': receivables,
+      'todaysGoldPrice': todaysGoldPrice,
+      'resultMoney': resultMoney,
       'active': active,
       'transactionClosed': transactionClosed,
       'timeStamp': Timestamp.now(),
@@ -270,52 +284,61 @@ class _CalculateScreenState extends State<CalculateScreen> {
                 SizedBox(
                   height: 20,
                 ),
-                if (!showCalculationField) ...[
-                  ElevatedButton(
-                    onPressed: () async {
-                      takeOrnamentWeight(context);
-                    },
-                    child: const Text('Enter Ornament Weight'),
-                  ),
-                ] else ...[
-                  SizedBox(
-                    height: 20,
-                  ),
-                  //calculating payables
-                  displayAmount(),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    children: [
-                      TextBoxNormal(text: "Transaction Closed : "),
-                      Switch(
-                        value: transactionClosed_,
-                        onChanged: (value) {
-                          setState(() {
-                            transactionClosed_ = value;
-                          });
-                        },
-                        activeColor: Colors.black, // Color when switch is on
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      setState(() {
-                        isLoading=true;
-                      });
-                      await saveFinalCalculationToFirebase();
-                      setState(() {
-                        isLoading=false;
-                      });
-                    },
-                    child: const Text('Print Transction'),
-                  ),
+                if (!isTransactionClosedByHistory) ...[
+                  if (!showCalculationField) ...[
+                    ElevatedButton(
+                      onPressed: () async {
+                        takeOrnamentWeight(context);
+                      },
+                      child: const Text('Enter Ornament Weight'),
+                    ),
+                  ] else ...[
+                    SizedBox(
+                      height: 20,
+                    ),
+                    //calculating payables
+                    displayAmount(),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Row(
+                      children: [
+                        TextBoxNormal(text: "Transaction Closed : "),
+                        Switch(
+                          value: transactionClosed_,
+                          onChanged: (value) {
+                            setState(() {
+                              transactionClosed_ = value;
+                              if (transactionClosed_ == true) {
+                                transactionClosed = "Y";
+                              } else {
+                                transactionClosed = "N";
+                              }
+                              // print("transactionClosed_ : $transactionClosed_");
+                            });
+                          },
+                          activeColor: Colors.black, // Color when switch is on
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
+                // Text("transactionClosed_ : $transactionClosed_"),
+                SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    await saveFinalCalculationToFirebase();
+                    setState(() {
+                      isLoading = false;
+                    });
+                  },
+                  child: const Text('Print Transction'),
+                ),
               ],
             ),
           ),
@@ -513,4 +536,3 @@ class _FetchDataOfPaticularRecordState
     );
   }
 }
-

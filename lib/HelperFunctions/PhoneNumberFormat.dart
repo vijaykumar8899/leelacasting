@@ -1,5 +1,6 @@
 class PhoneNumberFormat{
  static Future<String> formatPhoneNumber(String phoneNumber) async{
+   print("formatPhoneNumber");
     // Remove any non-numeric characters
     phoneNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
 
@@ -12,10 +13,10 @@ class PhoneNumberFormat{
     }
 
     // Check if the number starts with a leading plus (+)
-    if (!phoneNumber.startsWith('+')) {
-      // Add the leading plus for international format
-      phoneNumber = '+$phoneNumber';
-    }
+    // if (!phoneNumber.startsWith('+')) {
+    //   // Add the leading plus for international format
+    //   phoneNumber = '+$phoneNumber';
+    // }
     print('phoneNumber : $phoneNumber');
     return phoneNumber;
   }

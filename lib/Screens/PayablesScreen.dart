@@ -1,3 +1,4 @@
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/CommonWidgets/InputField.dart';
 import 'package:leelacasting/CommonWidgets/Loading.dart';
+import 'package:leelacasting/CommonWidgets/SizedBoxAndBoldNormalText.dart';
 import 'package:leelacasting/Screens/CalculateScreen.dart';
 import 'package:leelacasting/Screens/GoldRateInput.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
@@ -61,7 +63,7 @@ class _PayablesScreenState extends State<PayablesScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          "Leela Casting",
+          "Payables Page",
           style: GoogleFonts.rowdies(
             textStyle: const TextStyle(
               color: Colors.black,
@@ -70,89 +72,9 @@ class _PayablesScreenState extends State<PayablesScreen> {
             ),
           ),
         ),
-        leading: IconButton(
-          onPressed: () {
-            _scaffoldKey.currentState!.openDrawer();
-          },
-          icon: const Icon(FontAwesomeIcons.bars),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              icon: const Icon(FontAwesomeIcons.barcode),
-              onPressed: () async {},
-            ),
-          ),
-        ],
         elevation: 0,
         centerTitle: true,
         backgroundColor: AppColors.primaryClr,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: AppColors.primaryClr,
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-                // Handle the Home tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              onTap: () {
-                // Handle the Settings tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.contact_page),
-              title: Text('Contact'),
-              onTap: () {
-                // Handle the Contact tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            //bluetooth
-            ListTile(
-              leading: Icon(Icons.bluetooth_rounded),
-              title: Text('Bluetooth Printer'),
-              onTap: () {
-                // Handle the Contact tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            //Gold Rate update
-            ListTile(
-              leading: Icon(Icons.currency_rupee_sharp),
-              title: Text("Today's Gold Rate"),
-              onTap: () async {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GoldRateInput(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
         future: fetchAllDocumentSnapshots(),
@@ -276,7 +198,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
         .collection(widget.collectionPath)
-        .where('payables', isEqualTo: 'N')
+        .where('payables', isEqualTo: 'Y')
         .snapshots();
 
     return Stack(
@@ -320,6 +242,8 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                             builder: (context) => CalculateScreen(
                                   collectionPath: widget.collectionPath,
                                   docId: doc.id,
+                                history: doc['todaysGoldPrice'],
+                                transaction: doc['transactionClosed']
                                 )),
                       );
                     },
@@ -337,41 +261,74 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                BarcodeWidget(
+                                  barcode: Barcode.code128(), // Choose the barcode type
+                                  data: doc[
+                                  'generatedBarCode'], // The text to be converted into a barcode
+                                  width: 250,
+                                  height: 50,
+                                  drawText: true, // Display the text below the barcode
+                                ),
+                                SizedBox(height: 10),
                                 Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceAround,
                                   children: [
-                                    Text("Name : ${doc['name']}"),
+                                    TextBoxBold(text: "Customer Name "),
+                                    SpaceBox(size: 20),
+                                    TextBoxNormal(
+                                      text: ": ${doc['name']}",
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    TextBoxBold(text: "City "),
+                                    SpaceBox(size: 60),
+                                    TextBoxNormal(
+                                      text: ": ${doc['city']}",
+                                    ),
                                   ],
                                 ),
                                 Row(
                                   children: [
-                                    Text("City : ${doc['city']}"),
+                                    TextBoxBold(text: "PhoneNumber"),
+                                    SpaceBox(size: 20),
+                                    TextBoxNormal(
+                                      text: "${doc['phoneNumber']}",
+                                    ),
                                   ],
                                 ),
                                 Row(
                                   children: [
-                                    Text(
-                                        "Phone Number : ${doc['phoneNumber']}"),
+                                    TextBoxBold(text: "Advance Gold :"),
+                                    SpaceBox(size: 20),
+                                    TextBoxNormal(
+                                      text: "${doc['advanceGold']}",
+                                    ),
                                   ],
                                 ),
                                 if (doc['typeAndPercentage'] is List) ...[
                                   Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: typeAndPercentageList.map((item) {
                                       return Row(
                                         children: [
-                                          Text("Type: ${item['type']}"),
-                                          SizedBox(width: 10),
-                                          Text(
-                                              "Percentage: ${item['percentage']}%"),
+                                          TextBoxBold(text: "Type : "),
+                                          SpaceBox(size: 20),
+                                          TextBoxNormal(
+                                            text: "${item['type']} ",
+                                          ),
+                                          TextBoxNormal(
+                                            text: "${item['percentage']}%",
+                                          ),
                                         ],
                                       );
                                     }).toList(),
                                   ),
-                                ] else ...[
-                                  Text(
-                                      "typeAndPercentage: ${doc['typeAndPercentage']}"),
-                                ]
+                                ],
                               ],
                             ),
                             IconButton(

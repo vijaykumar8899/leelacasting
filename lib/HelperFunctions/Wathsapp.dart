@@ -8,9 +8,10 @@ class Wathsapp {
 
 
   static Future<String> createWhatsAppLink(String phoneNumber, String userName) async{
+    print("createWhatsAppLink");
     String phoneNumber_ = await PhoneNumberFormat.formatPhoneNumber(phoneNumber);
     String message =
-        'Hi%2C%$userName';
+        'Hi';
     return '$baseWhatsAppLink$phoneNumber_?text=$message';
   }
 
@@ -26,6 +27,7 @@ class Wathsapp {
 
   // Method to send a message to the customer based on phone number
   static Future<void> sendMessageToCustomerFromWhatsApp(String phoneNumber, String userName) async {
+    print("sendMessageToCustomerFromWhatsApp");
     String whatsappLink = await createWhatsAppLink(phoneNumber, userName);
     try {
       await launchWhatsApp(whatsappLink);

@@ -15,7 +15,7 @@ class _TabScreenState extends State<TabsScreen> {
   int _currentIndex = 0;
   final List<Widget> _pages = [
     RecordsScreen(),
-    const ReceivablesScreen(),
+    ReceivablesScreen(),
     PayablesScreen()
   ];
 

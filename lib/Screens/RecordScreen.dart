@@ -8,19 +8,20 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/CommonWidgets/InputField.dart';
 import 'package:leelacasting/CommonWidgets/Loading.dart';
+import 'package:leelacasting/HelperFunctions/Toast.dart';
 import 'package:leelacasting/HelperFunctions/Wathsapp.dart';
 import 'package:leelacasting/Screens/CalculateScreen.dart';
 import 'package:leelacasting/Screens/GoldRateInput.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
-
 import '../CommonWidgets/SizedBoxAndBoldNormalText.dart';
 import '../CommonWidgets/TransctionDialog.dart';
+import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:share_plus/share_plus.dart';
 
 class RecordsScreen extends StatefulWidget {
   @override
@@ -41,22 +42,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
     fetchAllDocuments();
   }
 
-  Future<String> scanBarcode() async {
-    try {
-      String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        "#ff6666", // The color of the scan line
-        "Cancel", // The text for the cancel button
-        true, // Whether to show the flash icon
-        ScanMode.BARCODE, // Scan mode for barcode
-      );
 
-      // Return the scanned barcode
-      return barcodeScanRes;
-    } catch (e) {
-      // Handle errors or cancellation
-      return "-1"; // Return "-1" in case of an error or cancellation
-    }
-  }
 
 
   Future<QuerySnapshot<Map<String, dynamic>>>
@@ -109,17 +95,22 @@ class _RecordsScreenState extends State<RecordsScreen> {
             child: IconButton(
               icon: const Icon(FontAwesomeIcons.barcode),
               onPressed: () async {
-                String scannedBarcode = await scanBarcode();
-
-                // Handle the scanned barcode (for example, you can show it in a dialog)
-                if (scannedBarcode != "-1") {
-                  print('Scanned Barcode: $scannedBarcode');
+                var result;
+                try {
+                  result = await BarcodeScanner.scan();
+                  if (result.rawContent.isNotEmpty) {
+                    print('Scanned Barcode: ${result.rawContent}');
+                    // You can now use the scanned barcode data
+                  }
+                } catch (e) {
+                  print('Error occurred while scanning: $e');
+                }
+                if (result.toString().isEmpty) {
                   showDialog(
                     context: context,
                     builder: (context) {
                       return AlertDialog(
                         title: Text('Scanned Barcode'),
-                        content: Text(scannedBarcode),
                         actions: <Widget>[
                           TextButton(
                             child: Text('OK'),
@@ -332,19 +323,49 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
     try {
       // Capture the screenshot
       final image = await _screenShotController.capture();
+      if (image != null) {
+        // Get the directory to save the file
+        final directory = await getApplicationDocumentsDirectory();
 
-      // Get the directory to save the file
-      final directory = await getApplicationDocumentsDirectory();
+        // Generate the file path and save the image
+        final imagePath = '${directory.path}/screenshot_${DateTime
+            .now()
+            .millisecondsSinceEpoch}.png';
+        final imageFile = File(imagePath);
+        await imageFile.writeAsBytes(image!);
+        print('Screenshot saved at $imagePath');
+      }
+      else{
+        setState(() {
+          isLoading=false;
+        });
+        ToastMessage.toast_('Error capturing image');
+        print('Image is not captured.');
 
-      // Generate the file path and save the image
-      final imagePath = '${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
-      final imageFile = File(imagePath);
-      await imageFile.writeAsBytes(image!);
-      print('Screenshot saved at $imagePath');
+      }
     } catch (e) {
+      setState(() {
+        isLoading=false;
+      });
       print('Error capturing screenshot: $e');
+      ToastMessage.toast_('Error capturing image');
+
     }
   }
+
+  // Future<void> sendImageToWathsapp() async {
+  //   final imageBytes = await _screenShotController.capture();
+  //
+  //   final tempDir = await getTemporaryDirectory();
+  //   final tempFilePath = '${tempDir.path}/screenshot.png';
+  //
+  //   File tempFile = File(tempFilePath);
+  //   await tempFile.writeAsBytes(imageBytes!);
+  //
+  //   Share.shareFiles([tempFilePath]);
+  //   Share.shareXFiles([tempDir]);
+  //
+  // }
 
 
 
@@ -354,7 +375,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
         .collection(widget.collectionPath)
-        .orderBy('timeStamp', descending: true)
+        .where('transactionClosed', isEqualTo: 'N')
         .snapshots();
 
     return Column(
@@ -398,6 +419,8 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                             builder: (context) => CalculateScreen(
                                   collectionPath: widget.collectionPath,
                                   docId: doc.id,
+                              history: doc['todaysGoldPrice'],
+                                transaction: doc['transactionClosed']
                                 )),
                       );
                     },
@@ -498,10 +521,11 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                                       isLoading=true;
                                     });
                                     // Capture screenshot and save it
-                                    await captureAndSaveScreenshot();
-
+                                    // await captureAndSaveScreenshot();
 
                                    await Wathsapp.sendMessageToCustomerFromWhatsApp(doc['phoneNumber'], doc['name']);
+
+                                   // await sendImageToWathsapp();
                                     setState(() {
                                       isLoading=true;
                                     });

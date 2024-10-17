@@ -359,6 +359,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
           'typeAndPercentage': typesAndPercentages,
           'ornamentWeight': '0.000',
           'pendingGold': '0.000',
+          'resultMoney' : '0',
+          'todaysGoldPrice' : '0',
           'payables': 'NA',
           'receivables': 'NA',
           'active': 'Y',
