@@ -318,40 +318,39 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   final _screenShotController = ScreenshotController();
 
-
-  Future<void> captureAndSaveScreenshot() async {
-    try {
-      // Capture the screenshot
-      final image = await _screenShotController.capture();
-      if (image != null) {
-        // Get the directory to save the file
-        final directory = await getApplicationDocumentsDirectory();
-
-        // Generate the file path and save the image
-        final imagePath = '${directory.path}/screenshot_${DateTime
-            .now()
-            .millisecondsSinceEpoch}.png';
-        final imageFile = File(imagePath);
-        await imageFile.writeAsBytes(image!);
-        print('Screenshot saved at $imagePath');
-      }
-      else{
-        setState(() {
-          isLoading=false;
-        });
-        ToastMessage.toast_('Error capturing image');
-        print('Image is not captured.');
-
-      }
-    } catch (e) {
-      setState(() {
-        isLoading=false;
-      });
-      print('Error capturing screenshot: $e');
-      ToastMessage.toast_('Error capturing image');
-
-    }
-  }
+  // Future<void> captureAndSaveScreenshot() async {
+  //   try {
+  //     // Capture the screenshot
+  //     final image = await _screenShotController.capture();
+  //     if (image != null) {
+  //       // Get the directory to save the file
+  //       final directory = await getApplicationDocumentsDirectory();
+  //
+  //       // Generate the file path and save the image
+  //       final imagePath = '${directory.path}/screenshot_${DateTime
+  //           .now()
+  //           .millisecondsSinceEpoch}.png';
+  //       final imageFile = File(imagePath);
+  //       await imageFile.writeAsBytes(image!);
+  //       print('Screenshot saved at $imagePath');
+  //     }
+  //     else{
+  //       setState(() {
+  //         isLoading=false;
+  //       });
+  //       ToastMessage.toast_('Error capturing image');
+  //       print('Image is not captured.');
+  //
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       isLoading=false;
+  //     });
+  //     print('Error capturing screenshot: $e');
+  //     ToastMessage.toast_('Error capturing image');
+  //
+  //   }
+  // }
 
   // Future<void> sendImageToWathsapp() async {
   //   final imageBytes = await _screenShotController.capture();
@@ -436,82 +435,79 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           // crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Screenshot(
-                              controller: _screenShotController,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  BarcodeWidget(
-                                    barcode: Barcode.code128(), // Choose the barcode type
-                                    data: doc[
-                                    'generatedBarCode'], // The text to be converted into a barcode
-                                    width: 250,
-                                    height: 50,
-                                    drawText: true, // Display the text below the barcode
-                                  ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      TextBoxBold(text: "Customer Name "),
-                                      SpaceBox(size: 20),
-                                      TextBoxNormal(
-                                        text: ": ${doc['name']}",
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      TextBoxBold(text: "City "),
-                                      SpaceBox(size: 60),
-                                      TextBoxNormal(
-                                        text: ": ${doc['city']}",
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      TextBoxBold(text: "PhoneNumber"),
-                                      SpaceBox(size: 20),
-                                      TextBoxNormal(
-                                        text: "${doc['phoneNumber']}",
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      TextBoxBold(text: "Advance Gold :"),
-                                      SpaceBox(size: 20),
-                                      TextBoxNormal(
-                                        text: "${doc['advanceGold']}",
-                                      ),
-                                    ],
-                                  ),
-                                  if (doc['typeAndPercentage'] is List) ...[
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: typeAndPercentageList.map((item) {
-                                        return Row(
-                                          children: [
-                                            TextBoxBold(text: "Type : "),
-                                            SpaceBox(size: 20),
-                                            TextBoxNormal(
-                                              text: "${item['type']} ",
-                                            ),
-                                            TextBoxNormal(
-                                              text: "${item['percentage']}%",
-                                            ),
-                                          ],
-                                        );
-                                      }).toList(),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                BarcodeWidget(
+                                  barcode: Barcode.code128(), // Choose the barcode type
+                                  data: doc[
+                                  'generatedBarCode'], // The text to be converted into a barcode
+                                  width: 250,
+                                  height: 50,
+                                  drawText: true, // Display the text below the barcode
+                                ),
+                                SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    TextBoxBold(text: "Customer Name "),
+                                    SpaceBox(size: 20),
+                                    TextBoxNormal(
+                                      text: ": ${doc['name']}",
                                     ),
                                   ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    TextBoxBold(text: "City "),
+                                    SpaceBox(size: 60),
+                                    TextBoxNormal(
+                                      text: ": ${doc['city']}",
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    TextBoxBold(text: "PhoneNumber"),
+                                    SpaceBox(size: 20),
+                                    TextBoxNormal(
+                                      text: "${doc['phoneNumber']}",
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    TextBoxBold(text: "Advance Gold :"),
+                                    SpaceBox(size: 20),
+                                    TextBoxNormal(
+                                      text: "${doc['advanceGold']}",
+                                    ),
+                                  ],
+                                ),
+                                if (doc['typeAndPercentage'] is List) ...[
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: typeAndPercentageList.map((item) {
+                                      return Row(
+                                        children: [
+                                          TextBoxBold(text: "Type : "),
+                                          SpaceBox(size: 20),
+                                          TextBoxNormal(
+                                            text: "${item['type']} ",
+                                          ),
+                                          TextBoxNormal(
+                                            text: "${item['percentage']}%",
+                                          ),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
                             Row(
                               children: [
@@ -527,7 +523,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
 
                                    // await sendImageToWathsapp();
                                     setState(() {
-                                      isLoading=true;
+                                      isLoading=false;
                                     });
                                   },
                                   icon: const Icon(FontAwesomeIcons.whatsapp),

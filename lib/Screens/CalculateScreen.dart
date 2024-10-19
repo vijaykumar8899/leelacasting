@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -12,6 +14,9 @@ import 'package:leelacasting/Screens/TabScreens.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CalculateScreen extends StatefulWidget {
@@ -49,19 +54,45 @@ class _CalculateScreenState extends State<CalculateScreen> {
   String active = 'Y';
   String transactionClosed = 'N';
   bool transactionClosed_ = false;
+  bool calculateToMoney_ = false;
   bool isHistory = false;
   bool isTransactionClosedByHistory = false;
+  final _screenShotController = ScreenshotController();
 
   @override
   void initState() {
     super.initState();
     getFieldsToSharedPref();
-    if (widget.history != null) {
-      isHistory = true;
+    // print('history : ${widget.history}');
+    // print("transaction: ${widget.transaction}");
+    var history_ = int.parse(widget.history) ?? 0;
+    if (history_ > 0) {
+      setState(() {
+        isHistory = true;
+      });
     }
     if (widget.transaction == 'Y') {
-      isTransactionClosedByHistory = true;
+      setState(() {
+        isTransactionClosedByHistory = true;
+      });
     }
+  }
+
+  Future<void> sendImageToWathsapp() async {
+    final imageBytes = await _screenShotController.capture();
+
+    final tempDir = await getTemporaryDirectory();
+    final tempFilePath = '${tempDir.path}/screenshot.png';
+
+    File tempFile = File(tempFilePath);
+    await tempFile.writeAsBytes(imageBytes!);
+
+    // Use shareXFiles instead of shareFiles
+    await Share.shareXFiles([XFile(tempFilePath)],
+        text: 'Check out this screenshot!');
+
+    // Delete the temporary file after sharing
+    await tempFile.delete();
   }
 
   getFieldsToSharedPref() async {
@@ -108,7 +139,12 @@ class _CalculateScreenState extends State<CalculateScreen> {
         if (advanceGold != 0.0) {
           pendingGold = ornamentcostWithPer - advanceGold;
         }
-        resultMoney = pendingGold * todaysGoldPrice;
+        if (isHistory) {
+          var todaysGoldPrice_ = int.parse(widget.history) ?? 0;
+          resultMoney = pendingGold * todaysGoldPrice_;
+        } else {
+          resultMoney = pendingGold * todaysGoldPrice;
+        }
 
         if (pendingGold > 0.0) {
           setState(() {
@@ -156,15 +192,21 @@ class _CalculateScreenState extends State<CalculateScreen> {
           TextBoxNormal(
               text:
                   "= ${ornamentcostWithPer.toStringAsFixed(3)} - $advanceGold"),
-          if (isHistory) ...[
-            TextBoxNormal(
-                text:
-                    "= ${pendingGold.toStringAsFixed(3)} * ${widget.history}"),
+          if (calculateToMoney_) ...[
+            if (isHistory) ...[
+              TextBoxNormal(
+                  text:
+                      "= ${pendingGold.toStringAsFixed(3)} * ${widget.history}"),
+              TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
+            ] else ...[
+              TextBoxNormal(
+                  text:
+                      "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
+              TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
+            ],
           ] else ...[
-            TextBoxNormal(
-                text: "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
+            TextBoxBold(text: "= ${pendingGold.toStringAsFixed(3)}"),
           ],
-          TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
         ],
       ),
     );
@@ -199,7 +241,8 @@ class _CalculateScreenState extends State<CalculateScreen> {
                     });
                     await saveOrnamentWeightToFirebase();
                     setState(() {
-                      var orWeight = double.parse(ornamentWeightCtrl.text) ?? 1.0 ;
+                      var orWeight =
+                          double.parse(ornamentWeightCtrl.text) ?? 1.0;
                       ornamentWeight = orWeight;
                       isLoading = false;
                     });
@@ -275,75 +318,124 @@ class _CalculateScreenState extends State<CalculateScreen> {
       body: Stack(
         children: [
           Center(
-            child: Column(
-              children: [
-                FetchDataOfPaticularRecord(
-                  collectionPath: widget.collectionPath,
-                  docId: widget.docId,
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                if (!isTransactionClosedByHistory) ...[
-                  if (!showCalculationField) ...[
-                    ElevatedButton(
-                      onPressed: () async {
-                        takeOrnamentWeight(context);
-                      },
-                      child: const Text('Enter Ornament Weight'),
-                    ),
-                  ] else ...[
-                    SizedBox(
-                      height: 20,
-                    ),
-                    //calculating payables
-                    displayAmount(),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Row(
-                      children: [
-                        TextBoxNormal(text: "Transaction Closed : "),
-                        Switch(
-                          value: transactionClosed_,
-                          onChanged: (value) {
-                            setState(() {
-                              transactionClosed_ = value;
-                              if (transactionClosed_ == true) {
-                                transactionClosed = "Y";
-                              } else {
-                                transactionClosed = "N";
-                              }
-                              // print("transactionClosed_ : $transactionClosed_");
-                            });
-                          },
-                          activeColor: Colors.black, // Color when switch is on
-                        ),
-                      ],
-                    ),
+            child: Screenshot(
+              controller: _screenShotController,
+              child: Column(
+                children: [
+                  FetchDataOfPaticularRecord(
+                    collectionPath: widget.collectionPath,
+                    docId: widget.docId,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  if (!isTransactionClosedByHistory) ...[
+                    if (!showCalculationField) ...[
+                      // ElevatedButton(
+                      //   onPressed: () async {
+                      //     takeOrnamentWeight(context);
+                      //   },
+                      //   child: const Text('Enter Ornament Weight'),
+                      // ),
+                    ] else ...[
+                      SizedBox(
+                        height: 20,
+                      ),
+                      //calculating payables
+                      displayAmount(),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          takeOrnamentWeight(context);
+                        },
+                        child: const Text('Enter Ornament Weight'),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        children: [
+                          TextBoxNormal(text: "Calculate to money : "),
+                          Switch(
+                            value: calculateToMoney_,
+                            onChanged: (value) {
+                              setState(() {
+                                calculateToMoney_ = value;
+                                // if (calculateToMoney_ == true) {
+                                //   transactionClosed = "Y";
+                                // } else {
+                                //   transactionClosed = "N";
+                                // }
+                                // print("transactionClosed_ : $transactionClosed_");
+                              });
+                            },
+                            activeColor:
+                                Colors.black, // Color when switch is on
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        children: [
+                          TextBoxNormal(text: "Transaction Closed : "),
+                          Switch(
+                            value: transactionClosed_,
+                            onChanged: (value) {
+                              setState(() {
+                                transactionClosed_ = value;
+                                if (transactionClosed_ == true) {
+                                  transactionClosed = "Y";
+                                } else {
+                                  transactionClosed = "N";
+                                }
+                                // print("transactionClosed_ : $transactionClosed_");
+                              });
+                            },
+                            activeColor:
+                                Colors.black, // Color when switch is on
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
+                  // Text("transactionClosed_ : $transactionClosed_"),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      await saveFinalCalculationToFirebase();
+                      setState(() {
+                        isLoading = false;
+                      });
+                    },
+                    child: const Text('Print Transction'),
+                  ),
                 ],
-                // Text("transactionClosed_ : $transactionClosed_"),
-                SizedBox(
-                  height: 20,
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      isLoading = true;
-                    });
-                    await saveFinalCalculationToFirebase();
-                    setState(() {
-                      isLoading = false;
-                    });
-                  },
-                  child: const Text('Print Transction'),
-                ),
-              ],
+              ),
             ),
           ),
           if (isLoading) const LoadingIndicator(),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          setState(() {
+            isLoading = true;
+          });
+          await sendImageToWathsapp();
+          setState(() {
+            isLoading = false;
+          });
+        },
+        child: const Icon(FontAwesomeIcons.whatsapp),
       ),
     );
   }
@@ -416,8 +508,8 @@ class _FetchDataOfPaticularRecordState
           Timestamp timeStamp = doc['timeStamp'] as Timestamp;
           DateTime dateTime = timeStamp.toDate();
           List<dynamic> typeAndPercentageList = doc['typeAndPercentage'];
-          var ornamentWeight_ = doc['ornamentWeight'];
-          ornamentWeight = double.parse(ornamentWeight_);
+          // var ornamentWeight_ = doc['ornamentWeight'];
+          ornamentWeight = double.parse(doc['ornamentWeight']);
           advanceGold = double.parse(doc['advanceGold']);
           List<String> percentages = typeAndPercentageList
               .map((item) =>
@@ -483,6 +575,15 @@ class _FetchDataOfPaticularRecordState
                         ),
                       ],
                     ),
+                    Row(
+                      children: [
+                        TextBoxBold(text: "Advance Gold :"),
+                        SpaceBox(size: 20),
+                        TextBoxNormal(
+                          text: "${doc['advanceGold']}",
+                        ),
+                      ],
+                    ),
                     if (doc['typeAndPercentage'] is List) ...[
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,6 +623,28 @@ class _FetchDataOfPaticularRecordState
                           SpaceBox(size: 20),
                           TextBoxNormal(
                             text: "${doc['ornamentWeight']}",
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (doc['todaysGoldPrice'].toString() != '0') ...[
+                      Row(
+                        children: [
+                          TextBoxBold(text: "Gold Rate :"),
+                          SpaceBox(size: 20),
+                          TextBoxNormal(
+                            text: "${doc['todaysGoldPrice']}",
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (doc['pendingGold'].toString() != '0.000') ...[
+                      Row(
+                        children: [
+                          TextBoxBold(text: "Pending Gold :"),
+                          SpaceBox(size: 20),
+                          TextBoxNormal(
+                            text: "${doc['pendingGold']}",
                           ),
                         ],
                       ),

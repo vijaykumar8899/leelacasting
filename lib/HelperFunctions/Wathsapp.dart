@@ -3,29 +3,26 @@ import 'package:leelacasting/HelperFunctions/PhoneNumberFormat.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Wathsapp {
-  // Replace with your business phone number
   static final String baseWhatsAppLink = 'https://wa.me/';
 
-
-  static Future<String> createWhatsAppLink(String phoneNumber, String userName) async{
+  static Future<String> createWhatsAppLink(String phoneNumber, String userName) async {
     print("createWhatsAppLink");
     String phoneNumber_ = await PhoneNumberFormat.formatPhoneNumber(phoneNumber);
-    String message =
-        'Hi';
+    print("Formatted phoneNumber: $phoneNumber_");  // Log formatted phone number
+    String message = 'Hi';
     return '$baseWhatsAppLink$phoneNumber_?text=$message';
   }
 
-  // Launches WhatsApp with the constructed URL
   static Future<void> launchWhatsApp(String url) async {
-    // Checking if the constructed URL can be launched
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
+   try{
+     final whatsappLink = url;
+     launch(whatsappLink);
+   }
+   catch(e) {
+     throw 'Could not launch $url';
+   }
   }
 
-  // Method to send a message to the customer based on phone number
   static Future<void> sendMessageToCustomerFromWhatsApp(String phoneNumber, String userName) async {
     print("sendMessageToCustomerFromWhatsApp");
     String whatsappLink = await createWhatsAppLink(phoneNumber, userName);
