@@ -266,11 +266,11 @@ class _CalculateScreenState extends State<CalculateScreen> {
         .collection(widget.collectionPath)
         .doc(widget.docId)
         .update({
-      'pendingGold': pendingGold,
+      'pendingGold': pendingGold.toString(),
       'payables': payables,
       'receivables': receivables,
-      'todaysGoldPrice': todaysGoldPrice,
-      'resultMoney': resultMoney,
+      'todaysGoldPrice': todaysGoldPrice.toString(),
+      'resultMoney': resultMoney.toString(),
       'active': active,
       'transactionClosed': transactionClosed,
       'timeStamp': Timestamp.now(),
@@ -346,63 +346,65 @@ class _CalculateScreenState extends State<CalculateScreen> {
                       SizedBox(
                         height: 20,
                       ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          takeOrnamentWeight(context);
-                        },
-                        child: const Text('Enter Ornament Weight'),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Row(
-                        children: [
-                          TextBoxNormal(text: "Calculate to money : "),
-                          Switch(
-                            value: calculateToMoney_,
-                            onChanged: (value) {
-                              setState(() {
-                                calculateToMoney_ = value;
-                                // if (calculateToMoney_ == true) {
-                                //   transactionClosed = "Y";
-                                // } else {
-                                //   transactionClosed = "N";
-                                // }
-                                // print("transactionClosed_ : $transactionClosed_");
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Color when switch is on
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Row(
-                        children: [
-                          TextBoxNormal(text: "Transaction Closed : "),
-                          Switch(
-                            value: transactionClosed_,
-                            onChanged: (value) {
-                              setState(() {
-                                transactionClosed_ = value;
-                                if (transactionClosed_ == true) {
-                                  transactionClosed = "Y";
-                                } else {
-                                  transactionClosed = "N";
-                                }
-                                // print("transactionClosed_ : $transactionClosed_");
-                              });
-                            },
-                            activeColor:
-                                Colors.black, // Color when switch is on
-                          ),
-                        ],
-                      ),
+
                     ],
                   ],
                   // Text("transactionClosed_ : $transactionClosed_"),
+                  SizedBox(height: 20,),
+                  ElevatedButton(
+                    onPressed: () async {
+                      takeOrnamentWeight(context);
+                    },
+                    child: const Text('Enter Ornament Weight'),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      TextBoxNormal(text: "Calculate to money : "),
+                      Switch(
+                        value: calculateToMoney_,
+                        onChanged: (value) {
+                          setState(() {
+                            calculateToMoney_ = value;
+                            // if (calculateToMoney_ == true) {
+                            //   transactionClosed = "Y";
+                            // } else {
+                            //   transactionClosed = "N";
+                            // }
+                            // print("transactionClosed_ : $transactionClosed_");
+                          });
+                        },
+                        activeColor:
+                        Colors.black, // Color when switch is on
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      TextBoxNormal(text: "Transaction Closed : "),
+                      Switch(
+                        value: transactionClosed_,
+                        onChanged: (value) {
+                          setState(() {
+                            transactionClosed_ = value;
+                            if (transactionClosed_ == true) {
+                              transactionClosed = "Y";
+                            } else {
+                              transactionClosed = "N";
+                            }
+                            // print("transactionClosed_ : $transactionClosed_");
+                          });
+                        },
+                        activeColor:
+                        Colors.black, // Color when switch is on
+                      ),
+                    ],
+                  ),
                   SizedBox(
                     height: 20,
                   ),

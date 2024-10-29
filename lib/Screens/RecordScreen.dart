@@ -42,11 +42,8 @@ class _RecordsScreenState extends State<RecordsScreen> {
     fetchAllDocuments();
   }
 
-
-
-
   Future<QuerySnapshot<Map<String, dynamic>>>
-      fetchAllDocumentSnapshots() async {
+  fetchAllDocumentSnapshots() async {
     return await FirebaseFirestore.instance
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
@@ -224,14 +221,34 @@ class _RecordsScreenState extends State<RecordsScreen> {
                 // print('document : $document');
 
                 // Display the document ID and its data
-                return Column(
-                  children: [
-                    DayDisplayContainer(
-                      date: documentID,
+                return
+                  Container(
+                    child: Row(
+                      children: [
+                        // Left container occupying 3/4th of the width
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            child: Column(
+                              children: [
+                                DisplayDataFromFirebase(collectionPath: documentID),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Right container occupying 1/4th of the width
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            child: DayDisplayContainer(
+                              date: documentID,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    DisplayDataFromFirebase(collectionPath: documentID)
-                  ],
-                );
+                  );
+
               },
             );
           }
@@ -380,8 +397,9 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
     return Column(
       children: [
         Container(
+          margin: EdgeInsets.all(8.0),
           width: MediaQuery.of(context).size.width - 30,
-          height: MediaQuery.of(context).size.height - 300,
+          height: MediaQuery.of(context).size.height - 800,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: AppColors.secondaryClr,
@@ -408,7 +426,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                   Timestamp timeStamp = doc['timeStamp'] as Timestamp;
                   DateTime dateTime = timeStamp.toDate();
                   List<dynamic> typeAndPercentageList =
-                      doc['typeAndPercentage'];
+                  doc['typeAndPercentage'];
 
                   return GestureDetector(
                     onTap: () {
@@ -416,135 +434,138 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => CalculateScreen(
-                                  collectionPath: widget.collectionPath,
-                                  docId: doc.id,
-                              history: doc['todaysGoldPrice'],
+                                collectionPath: widget.collectionPath,
+                                docId: doc.id,
+                                history: doc['todaysGoldPrice'],
                                 transaction: doc['transactionClosed']
-                                )),
+                            )),
                       );
                     },
-                    child: Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: const BorderSide(width: 2.0, color: Colors.white),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          // crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                BarcodeWidget(
-                                  barcode: Barcode.code128(), // Choose the barcode type
-                                  data: doc[
-                                  'generatedBarCode'], // The text to be converted into a barcode
-                                  width: 250,
-                                  height: 50,
-                                  drawText: true, // Display the text below the barcode
-                                ),
-                                SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    TextBoxBold(text: "Customer Name "),
-                                    SpaceBox(size: 20),
-                                    TextBoxNormal(
-                                      text: ": ${doc['name']}",
+                    child: Container(
+                      margin: EdgeInsets.all(8.0),
+                      child: Card(
+                        elevation: 4.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          side: const BorderSide(width: 2.0, color: Colors.white),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            // crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  BarcodeWidget(
+                                    barcode: Barcode.code128(), // Choose the barcode type
+                                    data: doc[
+                                    'generatedBarCode'], // The text to be converted into a barcode
+                                    width: 250,
+                                    height: 50,
+                                    drawText: true, // Display the text below the barcode
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                    children: [
+                                      TextBoxBold(text: "Customer Name "),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: ": ${doc['name']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      TextBoxBold(text: "City "),
+                                      SpaceBox(size: 60),
+                                      TextBoxNormal(
+                                        text: ": ${doc['city']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextBoxBold(text: "PhoneNumber"),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: "${doc['phoneNumber']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextBoxBold(text: "Advance Gold :"),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: "${doc['advanceGold']}",
+                                      ),
+                                    ],
+                                  ),
+                                  if (doc['typeAndPercentage'] is List) ...[
+                                    Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: typeAndPercentageList.map((item) {
+                                        return Row(
+                                          children: [
+                                            TextBoxBold(text: "Type : "),
+                                            SpaceBox(size: 20),
+                                            TextBoxNormal(
+                                              text: "${item['type']} ",
+                                            ),
+                                            TextBoxNormal(
+                                              text: "${item['percentage']}%",
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
                                     ),
                                   ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    TextBoxBold(text: "City "),
-                                    SpaceBox(size: 60),
-                                    TextBoxNormal(
-                                      text: ": ${doc['city']}",
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    TextBoxBold(text: "PhoneNumber"),
-                                    SpaceBox(size: 20),
-                                    TextBoxNormal(
-                                      text: "${doc['phoneNumber']}",
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    TextBoxBold(text: "Advance Gold :"),
-                                    SpaceBox(size: 20),
-                                    TextBoxNormal(
-                                      text: "${doc['advanceGold']}",
-                                    ),
-                                  ],
-                                ),
-                                if (doc['typeAndPercentage'] is List) ...[
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: typeAndPercentageList.map((item) {
-                                      return Row(
-                                        children: [
-                                          TextBoxBold(text: "Type : "),
-                                          SpaceBox(size: 20),
-                                          TextBoxNormal(
-                                            text: "${item['type']} ",
-                                          ),
-                                          TextBoxNormal(
-                                            text: "${item['percentage']}%",
-                                          ),
-                                        ],
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () async{
+                                      setState(() {
+                                        isLoading=true;
+                                      });
+                                      // Capture screenshot and save it
+                                      // await captureAndSaveScreenshot();
+
+                                      await Wathsapp.sendMessageToCustomerFromWhatsApp(doc['phoneNumber'], doc['name']);
+
+                                      // await sendImageToWathsapp();
+                                      setState(() {
+                                        isLoading=false;
+                                      });
+                                    },
+                                    icon: const Icon(FontAwesomeIcons.whatsapp),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return TransactionDialog(
+                                            collectionPath: widget.collectionPath,
+                                            docId: doc.id,
+                                          );
+                                        },
                                       );
-                                    }).toList(),
+                                    },
+                                    icon: const Icon(FontAwesomeIcons.print),
                                   ),
                                 ],
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () async{
-                                    setState(() {
-                                      isLoading=true;
-                                    });
-                                    // Capture screenshot and save it
-                                    // await captureAndSaveScreenshot();
-
-                                   await Wathsapp.sendMessageToCustomerFromWhatsApp(doc['phoneNumber'], doc['name']);
-
-                                   // await sendImageToWathsapp();
-                                    setState(() {
-                                      isLoading=false;
-                                    });
-                                  },
-                                  icon: const Icon(FontAwesomeIcons.whatsapp),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return TransactionDialog(
-                                          collectionPath: widget.collectionPath,
-                                          docId: doc.id,
-                                        );
-                                      },
-                                    );
-                                  },
-                                  icon: const Icon(FontAwesomeIcons.print),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
