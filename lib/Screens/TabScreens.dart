@@ -74,12 +74,12 @@ class _TabScreenState extends State<TabsScreen>
             items: [
               BottomNavigationBarItem(
                 icon: _buildTabIcon(FontAwesomeIcons.home,
-                    isActive: _currentIndex == 1),
+                    isActive: _currentIndex == 0),
                 label: "Home Page",
               ),
               BottomNavigationBarItem(
                 icon: _buildTabIcon(FontAwesomeIcons.clipboardList,
-                    isActive: _currentIndex == 0),
+                    isActive: _currentIndex == 1),
                 label: "Receivables Page",
               ),
               BottomNavigationBarItem(

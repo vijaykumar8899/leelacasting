@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/Screens/GoldRateInput.dart';
+import 'package:leelacasting/Screens/MainHomeScreen2.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
@@ -333,7 +334,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                                   int index) {
                                 var doc =
                                 snapshot.data!.docs[index];
-                                print("doc : $doc");
                                 print("Snapshot Data: ${snapshot.data!.docs.map((doc) => doc.data()).toList()}");
 
                                 Timestamp timeStamp =
@@ -344,185 +344,199 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                                 typeAndPercentageList =
                                 doc['typeAndPercentage'];
                                 print("selected data : $selectedDate");
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius:
-                                    BorderRadius.circular(
-                                        15), // Curved border
-                                    border: Border.all(
-                                      color: Colors
-                                          .white, // Border color
-                                      width:
-                                      0, // Slight border width for visibility
+                                return GestureDetector(
+                                  onTap : (){
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => MainHomeScreen2(
+                                            collectionPath: doc.id,
+                                            docId: doc.id,
+                                            history: doc['todaysGoldPrice'],
+                                            transaction: doc['transactionClosed'],
+                                          )),
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                      BorderRadius.circular(
+                                          15), // Curved border
+                                      border: Border.all(
+                                        color: Colors
+                                            .white, // Border color
+                                        width:
+                                        0, // Slight border width for visibility
+                                      ),
+                                      image: DecorationImage(
+                                        image: NetworkImage(
+                                            'https://cdn.vectorstock.com/i/500p/81/36/luxury-black-gold-background-elegant-business-vector-52808136.jpg'), // Background image
+                                        fit: BoxFit
+                                            .cover, // Ensure the image covers the entire container
+                                      ),
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors
+                                              .black54, // Add some transparency to enhance readability
+                                          Colors.black54,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
                                     ),
-                                    image: DecorationImage(
-                                      image: NetworkImage(
-                                          'https://cdn.vectorstock.com/i/500p/81/36/luxury-black-gold-background-elegant-business-vector-52808136.jpg'), // Background image
-                                      fit: BoxFit
-                                          .cover, // Ensure the image covers the entire container
-                                    ),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors
-                                            .black54, // Add some transparency to enhance readability
-                                        Colors.black54,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                  ),
-                                  margin: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 20),
-                                  child: Padding(
-                                    padding:
-                                    const EdgeInsets.symmetric(
-                                        vertical: 20.0,
-                                        horizontal: 18.0),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                      MainAxisAlignment
-                                          .spaceBetween,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment
-                                              .start,
-                                          children: [
-                                            // Barcode placeholder
-                                            // Container(
-                                            //   decoration:
-                                            //       BoxDecoration(
-                                            //     color: Colors
-                                            //         .grey[800]
-                                            //         ?.withOpacity(
-                                            //             0.8), // Darker, semi-transparent background for the barcode
-                                            //     borderRadius:
-                                            //         BorderRadius
-                                            //             .circular(
-                                            //                 10.0),
-                                            //   ),
-                                            //   width: 230,
-                                            //   height: 40,
-                                            //   child: Center(
-                                            //     child: BarcodeWidget(
-                                            //       barcode: Barcode.code128(), // Choose the barcode type
-                                            //       data: doc[
-                                            //       'generatedBarCode'], // The text to be converted into a barcode
-                                            //       width: 250,
-                                            //       height: 50,
-                                            //       drawText: true, // Display the text below the barcode
-                                            //     ),
-                                            //   ),
-                                            // ),
-                                            const SizedBox(
-                                                height: 16),
+                                    margin: EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 20),
+                                    child: Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(
+                                          vertical: 20.0,
+                                          horizontal: 18.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                        MainAxisAlignment
+                                            .spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                            children: [
+                                              // Barcode placeholder
+                                              // Container(
+                                              //   decoration:
+                                              //       BoxDecoration(
+                                              //     color: Colors
+                                              //         .grey[800]
+                                              //         ?.withOpacity(
+                                              //             0.8), // Darker, semi-transparent background for the barcode
+                                              //     borderRadius:
+                                              //         BorderRadius
+                                              //             .circular(
+                                              //                 10.0),
+                                              //   ),
+                                              //   width: 230,
+                                              //   height: 40,
+                                              //   child: Center(
+                                              //     child: BarcodeWidget(
+                                              //       barcode: Barcode.code128(), // Choose the barcode type
+                                              //       data: doc[
+                                              //       'generatedBarCode'], // The text to be converted into a barcode
+                                              //       width: 250,
+                                              //       height: 50,
+                                              //       drawText: true, // Display the text below the barcode
+                                              //     ),
+                                              //   ),
+                                              // ),
+                                              const SizedBox(
+                                                  height: 16),
 
-                                            // Information rows
-                                            _buildInfoRow(
-                                                "Customer Name :",
-                                                doc['name']),
-                                            const SizedBox(
-                                                height: 8),
-                                            _buildInfoRow(
-                                                "City                         :",
-                                                doc['city']),
-                                            const SizedBox(
-                                                height: 8),
-                                            _buildInfoRow(
-                                                "Phone Number   :",
-                                                doc['phoneNumber']),
-                                            const SizedBox(
-                                                height: 8),
-                                            _buildInfoRow(
-                                                "Advance Gold    :",
-                                                doc['advanceGold']),
-                                          ],
-                                        ),
-                                        Column(
-                                          children: [
-                                            IconButton(
-                                              onPressed: () {
-                                                // WhatsApp logic
-                                              },
-                                              icon: Icon(
-                                                FontAwesomeIcons
-                                                    .whatsapp,
-                                                color: Colors
-                                                    .greenAccent[
-                                                400],
-                                                size:
-                                                40, // Slightly larger icon for better visibility
+                                              // Information rows
+                                              _buildInfoRow(
+                                                  "Customer Name :",
+                                                  doc['name']),
+                                              const SizedBox(
+                                                  height: 8),
+                                              _buildInfoRow(
+                                                  "City                         :",
+                                                  doc['city']),
+                                              const SizedBox(
+                                                  height: 8),
+                                              _buildInfoRow(
+                                                  "Phone Number   :",
+                                                  doc['phoneNumber']),
+                                              const SizedBox(
+                                                  height: 8),
+                                              _buildInfoRow(
+                                                  "Advance Gold    :",
+                                                  doc['advanceGold']),
+                                            ],
+                                          ),
+                                          Column(
+                                            children: [
+                                              IconButton(
+                                                onPressed: () {
+                                                  // WhatsApp logic
+                                                },
+                                                icon: Icon(
+                                                  FontAwesomeIcons
+                                                      .whatsapp,
+                                                  color: Colors
+                                                      .greenAccent[
+                                                  400],
+                                                  size:
+                                                  40, // Slightly larger icon for better visibility
+                                                ),
                                               ),
-                                            ),
-                                            SizedBox(
-                                              height: 15,
-                                            ),
-                                            IconButton(
-                                              onPressed: () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext
-                                                  context) {
-                                                    return AlertDialog(
-                                                      title:
-                                                      const Text(
-                                                        'Print',
-                                                        style:
-                                                        TextStyle(
-                                                          fontFamily:
-                                                          'Lato',
-                                                          fontWeight:
-                                                          FontWeight
-                                                              .bold,
-                                                        ),
-                                                      ),
-                                                      content:
-                                                      const Text(
-                                                        'Printing functionality goes here.',
-                                                        style: TextStyle(
+                                              SizedBox(
+                                                height: 15,
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext
+                                                    context) {
+                                                      return AlertDialog(
+                                                        title:
+                                                        const Text(
+                                                          'Print',
+                                                          style:
+                                                          TextStyle(
                                                             fontFamily:
-                                                            'Lato'),
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed:
-                                                              () {
-                                                            Navigator.of(context)
-                                                                .pop();
-                                                          },
-                                                          child:
-                                                          const Text(
-                                                            'Close',
-                                                            style:
-                                                            TextStyle(
-                                                              fontFamily:
-                                                              'Lato',
-                                                              color:
-                                                              Colors.blueAccent,
-                                                            ),
+                                                            'Lato',
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
                                                           ),
                                                         ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              icon: Icon(
-                                                FontAwesomeIcons
-                                                    .print,
-                                                color: const Color
-                                                    .fromARGB(
-                                                    255, 0, 11, 39),
-                                                size:
-                                                40, // Slightly larger icon for better visibility
+                                                        content:
+                                                        const Text(
+                                                          'Printing functionality goes here.',
+                                                          style: TextStyle(
+                                                              fontFamily:
+                                                              'Lato'),
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed:
+                                                                () {
+                                                              Navigator.of(context)
+                                                                  .pop();
+                                                            },
+                                                            child:
+                                                            const Text(
+                                                              'Close',
+                                                              style:
+                                                              TextStyle(
+                                                                fontFamily:
+                                                                'Lato',
+                                                                color:
+                                                                Colors.blueAccent,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                                icon: Icon(
+                                                  FontAwesomeIcons
+                                                      .print,
+                                                  color: const Color
+                                                      .fromARGB(
+                                                      255, 0, 11, 39),
+                                                  size:
+                                                  40, // Slightly larger icon for better visibility
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );
