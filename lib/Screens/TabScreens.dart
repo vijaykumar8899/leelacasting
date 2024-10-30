@@ -4,6 +4,7 @@ import 'package:leelacasting/Screens/HomeScreen.dart';
 import 'package:leelacasting/Screens/MainHomeScreen.dart';
 import 'package:leelacasting/Screens/MainHomeScreen2.dart';
 import 'package:leelacasting/Screens/PayablesScreen.dart';
+import 'package:leelacasting/Screens/ReceivablesScreen.dart';
 import 'package:leelacasting/Screens/RecordScreen.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
 
@@ -16,10 +17,10 @@ class _TabScreenState extends State<TabsScreen>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final List<Widget> _pages = [
-    RecordsScreen(),
     MainHomeScreen(),
-    // PayablesScreen(),
-    MainHomeScreen2(),
+    ReceivablesScreen(),
+    PayablesScreen(),
+
   ];
 
   changeIndex(int selectedIndex) {
@@ -72,19 +73,19 @@ class _TabScreenState extends State<TabsScreen>
             ),
             items: [
               BottomNavigationBarItem(
-                icon: _buildTabIcon(FontAwesomeIcons.clipboardList,
-                    isActive: _currentIndex == 0),
-                label: "Records",
-              ),
-              BottomNavigationBarItem(
                 icon: _buildTabIcon(FontAwesomeIcons.home,
                     isActive: _currentIndex == 1),
-                label: "Home",
+                label: "Home Page",
+              ),
+              BottomNavigationBarItem(
+                icon: _buildTabIcon(FontAwesomeIcons.clipboardList,
+                    isActive: _currentIndex == 0),
+                label: "Receivables Page",
               ),
               BottomNavigationBarItem(
                 icon: _buildTabIcon(FontAwesomeIcons.wallet,
                     isActive: _currentIndex == 2),
-                label: "Payables",
+                label: "Payable Page",
               ),
             ],
           ),
