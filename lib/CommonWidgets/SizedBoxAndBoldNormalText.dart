@@ -53,9 +53,10 @@ class TextBoxNormal extends StatelessWidget {
       text,
       overflow: overflow,
       style: const TextStyle(
-        fontWeight: FontWeight.normal,
-        fontSize: 18.0,
-        color: Colors.black,
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color:
+        Color.fromARGB(221, 207, 207, 207),
       ),
     );
   }

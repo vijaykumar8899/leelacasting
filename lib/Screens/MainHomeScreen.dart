@@ -350,10 +350,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) => MainHomeScreen2(
-                                            collectionPath: doc.id,
-                                            docId: doc.id,
-                                            history: doc['todaysGoldPrice'],
-                                            transaction: doc['transactionClosed'],
+                                            collectionPath: selectedDate,
+                                            docId: doc.id
                                           )),
                                     );
                                   },

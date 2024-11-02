@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -6,15 +8,20 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/CommonWidgets/InputField.dart';
 import 'package:leelacasting/CommonWidgets/Loading.dart';
-import 'package:leelacasting/CommonWidgets/SizedBoxAndBoldNormalText.dart';
+import 'package:leelacasting/HelperFunctions/Toast.dart';
+import 'package:leelacasting/HelperFunctions/Wathsapp.dart';
 import 'package:leelacasting/Screens/CalculateScreen.dart';
+import 'package:leelacasting/Screens/GoldRateInput.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:screenshot/screenshot.dart';
+import 'package:path_provider/path_provider.dart';
+import '../CommonWidgets/SizedBoxAndBoldNormalText.dart';
 import '../CommonWidgets/TransctionDialog.dart';
+import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ReceivablesScreen extends StatefulWidget {
   @override
@@ -34,7 +41,7 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
   }
 
   Future<QuerySnapshot<Map<String, dynamic>>>
-  fetchAllDocumentSnapshots() async {
+      fetchAllDocumentSnapshots() async {
     return await FirebaseFirestore.instance
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
@@ -62,7 +69,7 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          "Receivables Page",
+          "Leela Casting",
           style: GoogleFonts.rowdies(
             textStyle: const TextStyle(
               color: Colors.black,
@@ -71,9 +78,118 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
             ),
           ),
         ),
+        leading: IconButton(
+          onPressed: () {
+            _scaffoldKey.currentState!.openDrawer();
+          },
+          icon: const Icon(FontAwesomeIcons.bars),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              icon: const Icon(FontAwesomeIcons.barcode),
+              onPressed: () async {
+                var result;
+                try {
+                  result = await BarcodeScanner.scan();
+                  if (result.rawContent.isNotEmpty) {
+                    print('Scanned Barcode: ${result.rawContent}');
+                    // You can now use the scanned barcode data
+                  }
+                } catch (e) {
+                  print('Error occurred while scanning: $e');
+                }
+                if (result.toString().isEmpty) {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Scanned Barcode'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+        ],
         elevation: 0,
         centerTitle: true,
         backgroundColor: AppColors.primaryClr,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: AppColors.primaryClr,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                // Handle the Home tap
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                // Handle the Settings tap
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.contact_page),
+              title: Text('Contact'),
+              onTap: () {
+                // Handle the Contact tap
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            //bluetooth
+            ListTile(
+              leading: Icon(Icons.bluetooth_rounded),
+              title: Text('Bluetooth Printer'),
+              onTap: () {
+                // Handle the Contact tap
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            //Gold Rate update
+            ListTile(
+              leading: Icon(Icons.currency_rupee_sharp),
+              title: Text("Today's Gold Rate"),
+              onTap: () async {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GoldRateInput(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
         future: fetchAllDocumentSnapshots(),
@@ -98,13 +214,37 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
                 final documentID = document.id;
                 final documentData = document.data() as Map<String, dynamic>;
 
-                return Column(
-                  children: [
-                    DayDisplayContainer(
-                      date: documentID,
-                    ),
-                    DisplayDataFromFirebase(collectionPath: documentID)
-                  ],
+                // print(ReceivablesScreen.numberOfArrowIcons);
+                // String totalWeight = documentData['totalWeight'];
+                // print('document : $document');
+
+                // Display the document ID and its data
+                return Container(
+                  child: Row(
+                    children: [
+                      // Left container occupying 3/4th of the width
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          child: Column(
+                            children: [
+                              DisplayDataFromFirebase(
+                                  collectionPath: documentID),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Right container occupying 1/4th of the width
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          child: DayDisplayContainer(
+                            date: documentID,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             );
@@ -190,21 +330,71 @@ class DisplayDataFromFirebase extends StatefulWidget {
 class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
   bool isLoading = false;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final _screenShotController = ScreenshotController();
+
+  // Future<void> captureAndSaveScreenshot() async {
+  //   try {
+  //     // Capture the screenshot
+  //     final image = await _screenShotController.capture();
+  //     if (image != null) {
+  //       // Get the directory to save the file
+  //       final directory = await getApplicationDocumentsDirectory();
+  //
+  //       // Generate the file path and save the image
+  //       final imagePath = '${directory.path}/screenshot_${DateTime
+  //           .now()
+  //           .millisecondsSinceEpoch}.png';
+  //       final imageFile = File(imagePath);
+  //       await imageFile.writeAsBytes(image!);
+  //       print('Screenshot saved at $imagePath');
+  //     }
+  //     else{
+  //       setState(() {
+  //         isLoading=false;
+  //       });
+  //       ToastMessage.toast_('Error capturing image');
+  //       print('Image is not captured.');
+  //
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       isLoading=false;
+  //     });
+  //     print('Error capturing screenshot: $e');
+  //     ToastMessage.toast_('Error capturing image');
+  //
+  //   }
+  // }
+
+  // Future<void> sendImageToWathsapp() async {
+  //   final imageBytes = await _screenShotController.capture();
+  //
+  //   final tempDir = await getTemporaryDirectory();
+  //   final tempFilePath = '${tempDir.path}/screenshot.png';
+  //
+  //   File tempFile = File(tempFilePath);
+  //   await tempFile.writeAsBytes(imageBytes!);
+  //
+  //   Share.shareFiles([tempFilePath]);
+  //   Share.shareXFiles([tempDir]);
+  //
+  // }
 
   @override
   Widget build(BuildContext context) {
     var stream_ = FirebaseFirestore.instance
-        .collection(Collectionnames.mainCollectionName)
+        .collection(Collectionnames.recivalbesCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
         .collection(widget.collectionPath)
-        .where('receivables', isEqualTo: 'Y')
+        .orderBy('timeStamp', descending: true)
         .snapshots();
 
-    return Stack(
+    return Column(
       children: [
         Container(
+          margin: EdgeInsets.all(8.0),
           width: MediaQuery.of(context).size.width - 30,
-          height: MediaQuery.of(context).size.height - 300,
+          height: MediaQuery.of(context).size.height - 800,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: AppColors.secondaryClr,
@@ -231,7 +421,7 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                   Timestamp timeStamp = doc['timeStamp'] as Timestamp;
                   DateTime dateTime = timeStamp.toDate();
                   List<dynamic> typeAndPercentageList =
-                  doc['typeAndPercentage'];
+                      doc['typeAndPercentage'];
 
                   return GestureDetector(
                     onTap: () {
@@ -239,112 +429,145 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => CalculateScreen(
-                              collectionPath: widget.collectionPath,
-                              docId: doc.id,
+                                collectionPath: widget.collectionPath,
+                                docId: doc.id,
                                 history: doc['todaysGoldPrice'],
-                                transaction: doc['transactionClosed'],
-                            )),
+                                transaction: doc['transactionClosed'])),
                       );
                     },
-                    child: Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: const BorderSide(width: 2.0, color: Colors.white),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                BarcodeWidget(
-                                  barcode: Barcode.code128(), // Choose the barcode type
-                                  data: doc[
-                                  'generatedBarCode'], // The text to be converted into a barcode
-                                  width: 250,
-                                  height: 50,
-                                  drawText: true, // Display the text below the barcode
-                                ),
-                                SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceAround,
-                                  children: [
-                                    TextBoxBold(text: "Customer Name "),
-                                    SpaceBox(size: 20),
-                                    TextBoxNormal(
-                                      text: ": ${doc['name']}",
+                    child: Container(
+                      margin: EdgeInsets.all(8.0),
+                      child: Card(
+                        elevation: 4.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          side:
+                              const BorderSide(width: 2.0, color: Colors.white),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            // crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  BarcodeWidget(
+                                    barcode: Barcode
+                                        .code128(), // Choose the barcode type
+                                    data: doc[
+                                        'generatedBarCode'], // The text to be converted into a barcode
+                                    width: 250,
+                                    height: 50,
+                                    drawText:
+                                        true, // Display the text below the barcode
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      TextBoxBold(text: "Customer Name "),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: ": ${doc['name']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      TextBoxBold(text: "City "),
+                                      SpaceBox(size: 60),
+                                      TextBoxNormal(
+                                        text: ": ${doc['city']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextBoxBold(text: "PhoneNumber"),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: "${doc['phoneNumber']}",
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextBoxBold(text: "Advance Gold :"),
+                                      SpaceBox(size: 20),
+                                      TextBoxNormal(
+                                        text: "${doc['advanceGold']}",
+                                      ),
+                                    ],
+                                  ),
+                                  if (doc['typeAndPercentage'] is List) ...[
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children:
+                                          typeAndPercentageList.map((item) {
+                                        return Row(
+                                          children: [
+                                            TextBoxBold(text: "Type : "),
+                                            SpaceBox(size: 20),
+                                            TextBoxNormal(
+                                              text: "${item['type']} ",
+                                            ),
+                                            TextBoxNormal(
+                                              text: "${item['percentage']}%",
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
                                     ),
                                   ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    TextBoxBold(text: "City "),
-                                    SpaceBox(size: 60),
-                                    TextBoxNormal(
-                                      text: ": ${doc['city']}",
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    TextBoxBold(text: "PhoneNumber"),
-                                    SpaceBox(size: 20),
-                                    TextBoxNormal(
-                                      text: "${doc['phoneNumber']}",
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    TextBoxBold(text: "Advance Gold :"),
-                                    SpaceBox(size: 20),
-                                    TextBoxNormal(
-                                      text: "${doc['advanceGold']}",
-                                    ),
-                                  ],
-                                ),
-                                if (doc['typeAndPercentage'] is List) ...[
-                                  Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    children: typeAndPercentageList.map((item) {
-                                      return Row(
-                                        children: [
-                                          TextBoxBold(text: "Type : "),
-                                          SpaceBox(size: 20),
-                                          TextBoxNormal(
-                                            text: "${item['type']} ",
-                                          ),
-                                          TextBoxNormal(
-                                            text: "${item['percentage']}%",
-                                          ),
-                                        ],
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () async {
+                                      setState(() {
+                                        isLoading = true;
+                                      });
+                                      // Capture screenshot and save it
+                                      // await captureAndSaveScreenshot();
+
+                                      await Wathsapp
+                                          .sendMessageToCustomerFromWhatsApp(
+                                              doc['phoneNumber'], doc['name']);
+
+                                      // await sendImageToWathsapp();
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+                                    },
+                                    icon: const Icon(FontAwesomeIcons.whatsapp),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return TransactionDialog(
+                                            collectionPath:
+                                                widget.collectionPath,
+                                            docId: doc.id,
+                                          );
+                                        },
                                       );
-                                    }).toList(),
+                                    },
+                                    icon: const Icon(FontAwesomeIcons.print),
                                   ),
                                 ],
-                              ],
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return TransactionDialog(
-                                      collectionPath: widget.collectionPath,
-                                      docId: doc.id,
-                                    );
-                                  },
-                                );
-                              },
-                              icon: const Icon(FontAwesomeIcons.print),
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

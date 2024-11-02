@@ -23,3 +23,16 @@ class LoadingIndicator extends StatelessWidget {
     );
   }
 }
+
+
+class CustomLoadingWidget extends StatelessWidget {
+  final Function toggleLoading;
+
+  const CustomLoadingWidget({required this.toggleLoading, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    toggleLoading(); // Call the function to set isLoading to true
+    return const Center(child: LoadingIndicator());
+  }
+}

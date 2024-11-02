@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -15,24 +16,23 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MainHomeScreen2 extends StatefulWidget {String collectionPath;
-String docId;
-String history;
-String transaction;
+import '../CommonWidgets/Loading.dart';
 
+class MainHomeScreen2 extends StatefulWidget {
+  String collectionPath;
+  String docId;
 
-  MainHomeScreen2({super.key, required this.collectionPath,
+  MainHomeScreen2({
+    super.key,
+    required this.collectionPath,
     required this.docId,
-    required this.history,
-    required this.transaction});
+  });
 
   @override
   _MainHomeScreen2State createState() => _MainHomeScreen2State();
 }
 
 class _MainHomeScreen2State extends State<MainHomeScreen2> {
-  bool isCalculateToMoneyOn = false;
-  bool isTransactionClosedOn = false;
   TextEditingController ornamentWeightCtrl = TextEditingController();
   final firestore = FirebaseFirestore.instance;
   final storage = FirebaseStorage.instance;
@@ -52,9 +52,10 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
   bool transactionClosed_ = false;
   bool calculateToMoney_ = false;
   bool isHistory = false;
+  int history_ = 0;
+  String transction = '';
   bool isTransactionClosedByHistory = false;
   final _screenShotController = ScreenshotController();
-
 
   @override
   void initState() {
@@ -62,21 +63,11 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
     getFieldsToSharedPref();
     // print('history : ${widget.history}');
     // print("transaction: ${widget.transaction}");
-    var history_ = int.parse(widget.history) ?? 0;
-    if (history_ > 0) {
-      setState(() {
-        isHistory = true;
-      });
-    }
-    if (widget.transaction == 'Y') {
-      setState(() {
-        isTransactionClosedByHistory = true;
-      });
-    }
   }
 
   Future<void> sendImageToWathsapp() async {
     final imageBytes = await _screenShotController.capture();
+
 
     final tempDir = await getTemporaryDirectory();
     final tempFilePath = '${tempDir.path}/screenshot.png';
@@ -93,6 +84,7 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
   }
 
   getFieldsToSharedPref() async {
+    print("getFieldsToSharedPref");
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     advanceGold = prefs.getDouble('advanceGold') ?? 0.0;
@@ -127,6 +119,8 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
   }
 
   calculatingAmount() {
+    print("calculatingAmount");
+    // getFieldsToSharedPref();
     try {
       print("calculatingAmount");
       var percentage_ = double.parse(percentage);
@@ -137,7 +131,7 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
           pendingGold = ornamentcostWithPer - advanceGold;
         }
         if (isHistory) {
-          var todaysGoldPrice_ = int.parse(widget.history) ?? 0;
+          var todaysGoldPrice_ = history_ ?? 0;
           resultMoney = pendingGold * todaysGoldPrice_;
         } else {
           resultMoney = pendingGold * todaysGoldPrice;
@@ -165,14 +159,14 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
   Widget displayAmount() {
     calculatingAmount();
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(5)),
-        color: AppColors.secondaryClr,
-        border: Border.all(
-          color: Colors.white70,
-          width: 1.5,
-        ),
-      ),
+      // decoration: BoxDecoration(
+      //   borderRadius: BorderRadius.all(Radius.circular(5)),
+      //   color: AppColors.secondaryClr,
+      //   border: Border.all(
+      //     color: Colors.white70,
+      //     width: 1.5,
+      //   ),
+      // ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -188,21 +182,20 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
           ),
           TextBoxNormal(
               text:
-              "= ${ornamentcostWithPer.toStringAsFixed(3)} - $advanceGold"),
+                  "= ${ornamentcostWithPer.toStringAsFixed(3)} - $advanceGold"),
           if (calculateToMoney_) ...[
             if (isHistory) ...[
               TextBoxNormal(
-                  text:
-                  "= ${pendingGold.toStringAsFixed(3)} * ${widget.history}"),
+                  text: "= ${pendingGold.toStringAsFixed(3)} * ${history_}"),
               TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
             ] else ...[
               TextBoxNormal(
                   text:
-                  "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
-              TextBoxBold(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
+                      "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
+              TextBoxNormal(text: "Total =  ${resultMoney.toStringAsFixed(0)}"),
             ],
           ] else ...[
-            TextBoxBold(text: "= ${pendingGold.toStringAsFixed(3)}"),
+            TextBoxNormal(text: "= ${pendingGold.toStringAsFixed(3)}"),
           ],
         ],
       ),
@@ -244,6 +237,8 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
                       isLoading = false;
                     });
                     // getFieldsToSharedPref();
+                    calculatingAmount();
+
                     Navigator.of(context).pop();
                   },
                   child: const Text('Submit'),
@@ -263,11 +258,11 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
         .collection(widget.collectionPath)
         .doc(widget.docId)
         .update({
-      'pendingGold': pendingGold.toString(),
+      'pendingGold': pendingGold.toStringAsFixed(3),
       'payables': payables,
       'receivables': receivables,
       'todaysGoldPrice': todaysGoldPrice.toString(),
-      'resultMoney': resultMoney.toString(),
+      'resultMoney': resultMoney.toStringAsFixed(0),
       'active': active,
       'transactionClosed': transactionClosed,
       'timeStamp': Timestamp.now(),
@@ -277,6 +272,33 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
       print('Error : $error');
     });
 
+    if(!transactionClosed_){
+      if(payables == 'Y'){
+        await firestore
+            .collection(Collectionnames.mainCollectionName)
+            .doc(Collectionnames.dialyTransactionDoc)
+            .collection(widget.collectionPath)
+            .doc(widget.docId)
+            .update({
+          'pendingGold': pendingGold.toStringAsFixed(3),
+          'payables': payables,
+          'receivables': receivables,
+          'todaysGoldPrice': todaysGoldPrice.toString(),
+          'resultMoney': resultMoney.toStringAsFixed(0),
+          'active': active,
+          'transactionClosed': transactionClosed,
+          'timeStamp': Timestamp.now(),
+        }).then((value) {
+          print('Data Added.');
+        }).catchError((error) {
+          print('Error : $error');
+        });
+      }
+      else if(receivables == 'Y'){
+
+      }
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -285,6 +307,19 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
     );
   }
 
+  saveFieldsToSharedPref() async {
+    print("saveFieldsToSharedPref");
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('advanceGold', advanceGold);
+      await prefs.setDouble('ornamentWeight', ornamentWeight);
+      await prefs.setString('percentage', percentage);
+
+    } catch (e) {
+      print("error in set : $e");
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -304,14 +339,471 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
         centerTitle: true,
         backgroundColor: Color.fromARGB(255, 96, 66, 0),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            _buildDetailedContainer(context),
-          ],
-        ),
+      body: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                // _buildDetailedContainer(context),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Screenshot(
+                        controller: _screenShotController,
+                        child: Container(
+                          padding: const EdgeInsets.all(0.0),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color.fromARGB(255, 4, 52, 135)
+                                    .withOpacity(0.2),
+                                Colors.black,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            border: Border.all(color: Colors.white, width: 1),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  image: const DecorationImage(
+                                    image: NetworkImage(
+                                      'https://cdn.vectorstock.com/i/500p/81/36/luxury-black-gold-background-elegant-business-vector-52808136.jpg',
+                                    ),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 0, horizontal: 0),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 20.0, horizontal: 18.0),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      StreamBuilder<DocumentSnapshot>(
+                                          stream: FirebaseFirestore.instance
+                                              .collection(
+                                                  Collectionnames.mainCollectionName)
+                                              .doc(
+                                                  Collectionnames.dialyTransactionDoc)
+                                              .collection(widget
+                                                  .collectionPath) // Specify the collection
+                                              .doc(widget.docId)
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return Center(
+                                                  child:
+                                                      CircularProgressIndicator()); // Loading indicator
+                                            }
+
+                                            if (!snapshot.hasData ||
+                                                !snapshot.data!.exists) {
+                                              return Center(
+                                                  child: Text("No data available"));
+                                            }
+
+                                            var data = snapshot.data!.data()
+                                                as Map<String, dynamic>;
+                                            Timestamp timeStamp =
+                                                data['timeStamp'] as Timestamp;
+                                            DateTime dateTime = timeStamp.toDate();
+                                            List<dynamic> typeAndPercentageList =
+                                                data['typeAndPercentage'];
+                                            // var ornamentWeight_ = doc['ornamentWeight'];
+                                            ornamentWeight =
+                                                double.parse(data['ornamentWeight']);
+                                            advanceGold =
+                                                double.parse(data['advanceGold']);
+                                            List<String> percentages =
+                                                typeAndPercentageList
+                                                    .map((item) => item['percentage']
+                                                        as String) // Adjust the type as necessary
+                                                    .toList();
+
+                        // Access the first percentage
+                                            if (percentages.isNotEmpty) {
+                                              percentage = percentages[0];
+                                            } else {
+                                              print('No percentages found');
+                                            }
+                                            saveFieldsToSharedPref();
+                                            // getFieldsToSharedPref();
+                                            // calculatingAmount();
+                                            var transaction =
+                                                data['transactionClosed'];
+                                            history_ =
+                                                int.parse(data['todaysGoldPrice']) ??
+                                                    0;
+                                            if (history_ > 0) {
+                                              setState(() {
+                                                isHistory = true;
+                                              });
+                                            }
+                                            if (transaction == 'Y') {
+                                              setState(() {
+                                                isTransactionClosedByHistory = true;
+                                              });
+                                            }
+                                            //
+                                            var name_ = data['name'];
+
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        ?.withOpacity(0.8),
+                                                    borderRadius:
+                                                        BorderRadius.circular(10.0),
+                                                  ),
+                                                  width: 270,
+                                                  height: 70,
+                                                  child: Center(
+                                                    child: BarcodeWidget(
+                                                      barcode: Barcode
+                                                          .code128(), // Choose the barcode type
+                                                      data: data[
+                                                          'generatedBarCode'], // The text to be converted into a barcode
+                                                      width: 250,
+                                                      height: 50,
+                                                      drawText:
+                                                          true, // Display the text below the barcode
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                TextBoxNormal(text: name_),
+                                                _buildInfoRow(
+                                                    "Customer Name       : ",
+                                                    data['name']),
+                                                const SizedBox(height: 8),
+                                                _buildInfoRow(
+                                                    "City                               : ",
+                                                    data['city']),
+                                                const SizedBox(height: 8),
+                                                _buildInfoRow(
+                                                    "Phone Number          : ",
+                                                    data['phoneNumber']),
+                                                const SizedBox(height: 8),
+                                                _buildInfoRow(
+                                                    "Advance Gold           : ",
+                                                    data['advanceGold']),
+                                                const SizedBox(height: 16),
+                                                if (data['typeAndPercentage']
+                                                    is List) ...[
+                                                  Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: typeAndPercentageList
+                                                        .map((item) {
+                                                      return Row(
+                                                        children: [
+                                                          _buildInfoRow(
+                                                              "Type                               :  ",
+                                                              "${item['type']} ${item['percentage']}%"),
+                                                        ],
+                                                      );
+                                                    }).toList(),
+                                                  ),
+                                                ] else ...[
+                                                  Row(
+                                                    children: [
+                                                      _buildInfoRow(
+                                                          "Type                               :  ",
+                                                          "${data['type']} ${data['percentage']}%"),
+                                                    ],
+                                                  ),
+                                                ],
+                                                const SizedBox(height: 8),
+                                                _buildInfoRow("Ornament Weight  : ",
+                                                    data['ornamentWeight']),
+                                                const SizedBox(height: 8),
+                                                _buildInfoRow(
+                                                    "Gold Rate                   : ",
+                                                    '7800'),
+                                                const SizedBox(height: 8),
+                                                if (data['pendingGold'].toString() != '0.000') ...[
+                                                  _buildInfoRow(
+                                                      "Pending Gold            : ",
+                                                      data['pendingGold']),
+                                                ]else...[
+                                                  _buildInfoRow(
+                                                      "Pending Gold            : ",
+                                                      pendingGold.toStringAsFixed(3)),
+                                                ],
+
+                                              ],
+                                            );
+                                          }),
+                                      Column(
+                                        children: [
+                                          IconButton(
+                                            onPressed: () async{
+                                              setState(() {
+                                                isLoading = true;
+                                              });
+                                              await sendImageToWathsapp();
+                                              setState(() {
+                                                isLoading = false;
+                                              });
+                                            },
+                                            icon: Icon(
+                                              FontAwesomeIcons.whatsapp,
+                                              color: Colors.greenAccent[400],
+                                              size: 70,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 35),
+                                          IconButton(
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: Text(
+                                                      'Print',
+                                                      style: GoogleFonts.lato(
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    content: Text(
+                                                      'Printing functionality goes here.',
+                                                      style: GoogleFonts.lato(),
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop();
+                                                        },
+                                                        child: Text(
+                                                          'Close',
+                                                          style: GoogleFonts.lato(
+                                                            color: Colors.blueAccent,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            icon: const Icon(
+                                              FontAwesomeIcons.print,
+                                              color: Color.fromARGB(255, 0, 11, 39),
+                                              size: 70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                height: 150,
+                                alignment: Alignment.center,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // Row(
+                                    //   mainAxisAlignment: MainAxisAlignment.center,
+                                    //   children: [
+                                    //     TextBoxNormal(
+                                    //       text: ornamentWeight.toStringAsFixed(3),
+                                    //     ),
+                                    //     TextBoxNormal(text: " * "),
+                                    //     TextBoxNormal(text: "$percentage%"),
+                                    //   ],
+                                    // ),
+                                    // TextBoxNormal(
+                                    //     text:
+                                    //         "= ${ornamentcostWithPer.toStringAsFixed(3)} - $advanceGold"),
+                                    // if (calculateToMoney_) ...[
+                                    //   if (isHistory) ...[
+                                    //     TextBoxNormal(
+                                    //         text:
+                                    //             "= ${pendingGold.toStringAsFixed(3)} * $history_"),
+                                    //     TextBoxBold(
+                                    //         text:
+                                    //             "Total =  ${resultMoney.toStringAsFixed(0)}"),
+                                    //   ] else ...[
+                                    //     TextBoxNormal(
+                                    //         text:
+                                    //             "= ${pendingGold.toStringAsFixed(3)} * $todaysGoldPrice"),
+                                    //     TextBoxNormal(
+                                    //         text:
+                                    //             "Total =  ${resultMoney.toStringAsFixed(0)}"),
+                                    //   ],
+                                    // ] else ...[
+                                    //   TextBoxNormal(
+                                    //       text:
+                                    //           "= ${pendingGold.toStringAsFixed(3)}"),
+                                    // ],
+                                    displayAmount()
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 50),
+                      Center(
+                        child: Container(
+                          height: 60, // Height for a more button-like feel
+                          width: 250, // Fixed width
+                          child: Material(
+                            elevation: 10, // Elevation for depth
+                            borderRadius:
+                                BorderRadius.circular(10), // Rounded corners
+                            child: ElevatedButton(
+                              onPressed: () {
+                                takeOrnamentWeight(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 0, 32, 58),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(10), // Rounded shape
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 15), // Padding
+                                shadowColor:
+                                    Colors.black.withOpacity(0.5), // Shadow depth
+                              ),
+                              child: Text(
+                                'Enter Ornament Weight',
+                                style: GoogleFonts.domine(
+                                  textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15, // Font size
+                                    fontWeight: FontWeight.bold, // Bold text
+                                    letterSpacing: 1.2, // Letter spacing
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 30),
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.shade900.withOpacity(0.5),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildRowItem(
+                              label: "Calculate to Money",
+                              toggleValue: calculateToMoney_,
+                              onToggleChanged: (value) {
+                                setState(() {
+                                  calculateToMoney_ = value;
+                                  print("calculateToMoney_ $calculateToMoney_");
+                                });
+                              },
+                            ),
+                            SizedBox(height: 10),
+                            Divider(color: Colors.grey.shade700, thickness: 1),
+                            SizedBox(height: 10),
+                            _buildRowItem(
+                              label: "Transaction Closed",
+                              toggleValue: transactionClosed_,
+                              onToggleChanged: (value) {
+                                setState(() {
+                                  transactionClosed_ = value;
+                                  print('isTransactionClosedOn $transactionClosed_');
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 30),
+                      Center(
+                        child: Container(
+                          height:
+                              80, // Increased height for a more button-like feel
+                          width: 950, // Fixed width to make it more button-like
+                          child: Material(
+                            elevation:
+                                30, // Added elevation for a pronounced effect
+                            borderRadius:
+                                BorderRadius.circular(10), // Rounded corners
+                            child: ElevatedButton(
+                              onPressed: () async{
+                                print("Button clicked!");
+                                setState(() {
+                                  isLoading = true;
+                                });
+                                await saveFinalCalculationToFirebase();
+                                setState(() {
+                                  isLoading = false;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 0, 29, 53),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 15), // Increased padding
+                                shadowColor: Colors.black.withOpacity(
+                                    0.5), // Shadow color for more depth
+                              ),
+                              child: Text(
+                                'Print Transaction',
+                                style: GoogleFonts.domine(
+                                  textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontSize:
+                                        25, // Increased font size for better visibility
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isLoading) const LoadingIndicator(),
+        ],
       ),
     );
   }
@@ -558,10 +1050,11 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
               children: [
                 _buildRowItem(
                   label: "Calculate to Money",
-                  toggleValue: isCalculateToMoneyOn,
+                  toggleValue: calculateToMoney_,
                   onToggleChanged: (value) {
                     setState(() {
-                      isCalculateToMoneyOn = value;
+                      calculateToMoney_ = value;
+                      print("calculateToMoney_ : $calculateToMoney_");
                     });
                   },
                 ),
@@ -570,10 +1063,16 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
                 SizedBox(height: 10),
                 _buildRowItem(
                   label: "Transaction Closed",
-                  toggleValue: isTransactionClosedOn,
+                  toggleValue: transactionClosed_,
                   onToggleChanged: (value) {
                     setState(() {
-                      isTransactionClosedOn = value;
+                      transactionClosed_ = value;
+                      if (transactionClosed_ == true) {
+                        transactionClosed = "Y";
+                      } else {
+                        transactionClosed = "N";
+                      }
+                      // print("transactionClosed_ : $transactionClosed_");
                     });
                   },
                 ),
@@ -589,9 +1088,8 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
                 elevation: 30, // Added elevation for a pronounced effect
                 borderRadius: BorderRadius.circular(10), // Rounded corners
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Define what happens when the button is clicked.
-                    print("Button clicked!");
+                  onPressed: () async {
+
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 0, 29, 53),
