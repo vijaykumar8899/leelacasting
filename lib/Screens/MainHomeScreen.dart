@@ -22,29 +22,36 @@ class MainHomeScreen extends StatefulWidget {
 }
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
-  late SharedPreferences prefs;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<String> dates = [];
 
-  static String selectedDate = '28';
+  static String selectedDate = '22';
   bool isSelectedDate = false;
   bool isRightPanelOpen = true; // State variable to manage the right panel
   // Mock data for items corresponding to each date
   @override
   void initState() {
     super.initState();
-    fetchDates();
     isSelectedDate = true;
-    final DateTime today = DateTime.now();
-    selectedDate = '${today.day.toString().padLeft(2, '0')}-${today.month.toString().padLeft(2, '0')}-${today.year}';
-    // print("today : $today");
-    // print("init selectedDate : $selectedDate");
+    //fetching selectedDate from shared pref
+    getSelectedDataFromSharedPref();
     stream_ = FirebaseFirestore.instance
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
         .collection(selectedDate)
         .where('transactionClosed', isEqualTo: 'N')
         .snapshots();
+  }
+
+  Future<void> getSelectedDataFromSharedPref() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    selectedDate =  prefs.getString('selectedDate') ?? '22';
+  }
+
+  Future<void> updateSelectedDateInSharedPref(String selectedDate_) async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedDate', selectedDate_);
+
   }
 
   Future<QuerySnapshot<Map<String, dynamic>>>
@@ -70,20 +77,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   }
 
   // Method to fetch data from Firestore and update the dates list
-  Future<void> fetchDates() async {
-    try {
-      final snapshot = await fetchAllDocumentSnapshots();
-      setState(() {
-        dates = snapshot.docs.map((doc) {
-          return doc.id; // Assuming `timeStamp` is a timestamp
-        }).toList();
-        print("dates : $dates");
-      });
-    } catch (e) {
-      print("Error fetching dates: $e");
-    }
-  }
-
   var stream_ = FirebaseFirestore.instance
       .collection(Collectionnames.mainCollectionName)
       .doc(Collectionnames.dialyTransactionDoc)
@@ -128,7 +121,16 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                 result = await BarcodeScanner.scan();
                 if (result.rawContent.isNotEmpty) {
                   print('Scanned Barcode: ${result.rawContent}');
-                  // You can now use the scanned barcode data
+                 //Scanned Barcode : '20-11-2024-2'
+                  String scannedBarcode = result.rawContent;
+                  // Split the string by the hyphen
+                  List<String> parts = scannedBarcode.split('-');
+                  // Join all parts except the last one to get the date
+                  String datePart = parts.sublist(0, parts.length - 1).join('-');
+                  // Get the last part which is the digit
+                  String digitPart = parts.last;
+                  print('Date: $datePart'); // Output: 20-11-2024
+                  print('Digit: $digitPart'); // Output: 2
                 }
               } catch (e) {
                 print('Error occurred while scanning: $e');
@@ -293,13 +295,25 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Center(
-                        child: Text(
+                        child: selectedDate != '22' ?
+                        Text(
                           'Details for $selectedDate',
                           style: GoogleFonts.spectralSc(
                             textStyle: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ) : Center(
+                          child: Text(
+                            'Please select a date',
+                            style: GoogleFonts.spectralSc(
+                              textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -666,6 +680,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                                   onTap: () {
                                     setState(() {
                                       selectedDate = documentID;
+                                     updateSelectedDateInSharedPref(selectedDate);
                                       isSelectedDate = true;
                                       stream_ = FirebaseFirestore.instance
                                           .collection(Collectionnames.mainCollectionName)

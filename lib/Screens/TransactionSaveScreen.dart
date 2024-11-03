@@ -149,8 +149,8 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
                     setState(() {
                       isLoading = true;
                     });
-                    await _saveTransaction();
-
+                    if(_nameCtrl.text.isNotEmpty  && _phoneNumberCtrl.text.isNotEmpty && _cityCtrl.text.isNotEmpty && _advanceGoldCtrl.text.isNotEmpty && _selectedTypeValues.isNotEmpty ) {
+                      await _saveTransaction();
                     setState(() {
                       _quantity = 1;
                       isLoading = false;
@@ -166,6 +166,13 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
                         );
                       },
                     );
+                    }
+                    else{
+                      ToastMessage.toast_('Enter all fields.');
+                      setState(() {
+                        isLoading=false;
+                      });
+                    }
                   },
                   child: Text("Save Transaction"),
                 ),
@@ -274,7 +281,7 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         String totalPayablesOfDay_ = docSnapshot.data()!['totalPayablesOfDay'];
         String totalRecivablesOfDay_ =
             docSnapshot.data()!['totalRecivablesOfDay'];
-        ToastMessage.toast_('2');
+        // ToastMessage.toast_('2');
         totalPayablesOfDay = double.tryParse(totalPayablesOfDay_) ?? 0.0;
         totalRecivablesOfDay = double.tryParse(totalRecivablesOfDay_) ?? 0.0;
         try {
@@ -336,45 +343,45 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         'type': selectedType,
         'percentage': percentage,
       });
-      bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
-      if (doesUserExist) {
-        length = await getDayPayables();
-        var generatedBarCode = '$formattedDate-$length';
-        print("generatedBar : $generatedBarCode");
+        bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
+        if (doesUserExist) {
+          length = await getDayPayables();
+          var generatedBarCode = '$formattedDate-$length';
+          print("generatedBar : $generatedBarCode");
 
-        final weight = _advanceGoldCtrl.text;
+          final weight = _advanceGoldCtrl.text;
 
-        // Save data to Firestore
-        await firestore
-            .collection(Collectionnames.mainCollectionName)
-            .doc(Collectionnames.dialyTransactionDoc)
-            .collection(formattedDate)
-            .doc(length.toString())
-            .set({
-          'name': _nameCtrl.text,
-          'phoneNumber': _phoneNumberCtrl.text,
-          'city': _cityCtrl.text,
-          'generatedBarCode': generatedBarCode,
-          'advanceGold': weight.toString(),
-          'typeAndPercentage': typesAndPercentages,
-          'ornamentWeight': '0.000',
-          'pendingGold': '0.000',
-          'resultMoney' : '0',
-          'todaysGoldPrice' : '0',
-          'payables': 'NA',
-          'receivables': 'NA',
-          'active': 'Y',
-          'transactionClosed': 'N',
-          'timeStamp': Timestamp.now(),
-        }).then((value) {
-          print('Data Added.');
-        }).catchError((error) {
-          print('Error : $error');
-        });
-      } else {
-        ToastMessage.toast_(
-            'Something went wrong, Please try after some time : userCheck');
-      }
+          // Save data to Firestore
+          await firestore
+              .collection(Collectionnames.mainCollectionName)
+              .doc(Collectionnames.dialyTransactionDoc)
+              .collection(formattedDate)
+              .doc(length.toString())
+              .set({
+            'name': _nameCtrl.text,
+            'phoneNumber': _phoneNumberCtrl.text,
+            'city': _cityCtrl.text,
+            'generatedBarCode': generatedBarCode,
+            'advanceGold': weight.toString(),
+            'typeAndPercentage': typesAndPercentages,
+            'ornamentWeight': '0.000',
+            'pendingGold': '0.000',
+            'resultMoney': '0',
+            'todaysGoldPrice': '0',
+            'payables': 'NA',
+            'receivables': 'NA',
+            'active': 'Y',
+            'transactionClosed': 'N',
+            'timeStamp': Timestamp.now(),
+          }).then((value) {
+            print('Data Added.');
+          }).catchError((error) {
+            print('Error : $error');
+          });
+        } else {
+          ToastMessage.toast_(
+              'Something went wrong, Please try after some time : userCheck');
+        }
     } catch (e) {
       print("Error: $e");
     }

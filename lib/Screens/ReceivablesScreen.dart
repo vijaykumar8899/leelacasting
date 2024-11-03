@@ -69,7 +69,7 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          "Leela Casting",
+          "Receivables Page",
           style: GoogleFonts.rowdies(
             textStyle: const TextStyle(
               color: Colors.black,
@@ -78,118 +78,9 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
             ),
           ),
         ),
-        leading: IconButton(
-          onPressed: () {
-            _scaffoldKey.currentState!.openDrawer();
-          },
-          icon: const Icon(FontAwesomeIcons.bars),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              icon: const Icon(FontAwesomeIcons.barcode),
-              onPressed: () async {
-                var result;
-                try {
-                  result = await BarcodeScanner.scan();
-                  if (result.rawContent.isNotEmpty) {
-                    print('Scanned Barcode: ${result.rawContent}');
-                    // You can now use the scanned barcode data
-                  }
-                } catch (e) {
-                  print('Error occurred while scanning: $e');
-                }
-                if (result.toString().isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text('Scanned Barcode'),
-                        actions: <Widget>[
-                          TextButton(
-                            child: Text('OK'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
-              },
-            ),
-          ),
-        ],
         elevation: 0,
         centerTitle: true,
         backgroundColor: AppColors.primaryClr,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: AppColors.primaryClr,
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-                // Handle the Home tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              onTap: () {
-                // Handle the Settings tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.contact_page),
-              title: Text('Contact'),
-              onTap: () {
-                // Handle the Contact tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            //bluetooth
-            ListTile(
-              leading: Icon(Icons.bluetooth_rounded),
-              title: Text('Bluetooth Printer'),
-              onTap: () {
-                // Handle the Contact tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            //Gold Rate update
-            ListTile(
-              leading: Icon(Icons.currency_rupee_sharp),
-              title: Text("Today's Gold Rate"),
-              onTap: () async {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GoldRateInput(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
         future: fetchAllDocumentSnapshots(),
@@ -250,16 +141,6 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
             );
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const TransactionSaveScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -330,55 +211,7 @@ class DisplayDataFromFirebase extends StatefulWidget {
 class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
   bool isLoading = false;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final _screenShotController = ScreenshotController();
 
-  // Future<void> captureAndSaveScreenshot() async {
-  //   try {
-  //     // Capture the screenshot
-  //     final image = await _screenShotController.capture();
-  //     if (image != null) {
-  //       // Get the directory to save the file
-  //       final directory = await getApplicationDocumentsDirectory();
-  //
-  //       // Generate the file path and save the image
-  //       final imagePath = '${directory.path}/screenshot_${DateTime
-  //           .now()
-  //           .millisecondsSinceEpoch}.png';
-  //       final imageFile = File(imagePath);
-  //       await imageFile.writeAsBytes(image!);
-  //       print('Screenshot saved at $imagePath');
-  //     }
-  //     else{
-  //       setState(() {
-  //         isLoading=false;
-  //       });
-  //       ToastMessage.toast_('Error capturing image');
-  //       print('Image is not captured.');
-  //
-  //     }
-  //   } catch (e) {
-  //     setState(() {
-  //       isLoading=false;
-  //     });
-  //     print('Error capturing screenshot: $e');
-  //     ToastMessage.toast_('Error capturing image');
-  //
-  //   }
-  // }
-
-  // Future<void> sendImageToWathsapp() async {
-  //   final imageBytes = await _screenShotController.capture();
-  //
-  //   final tempDir = await getTemporaryDirectory();
-  //   final tempFilePath = '${tempDir.path}/screenshot.png';
-  //
-  //   File tempFile = File(tempFilePath);
-  //   await tempFile.writeAsBytes(imageBytes!);
-  //
-  //   Share.shareFiles([tempFilePath]);
-  //   Share.shareXFiles([tempDir]);
-  //
-  // }
 
   @override
   Widget build(BuildContext context) {

@@ -71,7 +71,7 @@ class _PayablesScreenState extends State<PayablesScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          "Leela Casting",
+          "Payables Screen",
           style: GoogleFonts.rowdies(
             textStyle: const TextStyle(
               color: Colors.black,
@@ -80,50 +80,6 @@ class _PayablesScreenState extends State<PayablesScreen> {
             ),
           ),
         ),
-        leading: IconButton(
-          onPressed: () {
-            _scaffoldKey.currentState!.openDrawer();
-          },
-          icon: const Icon(FontAwesomeIcons.bars),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              icon: const Icon(FontAwesomeIcons.barcode),
-              onPressed: () async {
-                var result;
-                try {
-                  result = await BarcodeScanner.scan();
-                  if (result.rawContent.isNotEmpty) {
-                    print('Scanned Barcode: ${result.rawContent}');
-                    // You can now use the scanned barcode data
-                  }
-                } catch (e) {
-                  print('Error occurred while scanning: $e');
-                }
-                if (result.toString().isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text('Scanned Barcode'),
-                        actions: <Widget>[
-                          TextButton(
-                            child: Text('OK'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
-              },
-            ),
-          ),
-        ],
         elevation: 0,
         centerTitle: true,
         backgroundColor: AppColors.primaryClr,
@@ -253,16 +209,6 @@ class _PayablesScreenState extends State<PayablesScreen> {
             );
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const TransactionSaveScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
       ),
     );
   }
