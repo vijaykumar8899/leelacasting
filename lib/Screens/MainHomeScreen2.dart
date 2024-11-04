@@ -207,7 +207,7 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
           ),
           TextBoxNormal(
               text:
-                  "= ${ornamentcostWithPer.toStringAsFixed(3)} - $advanceGold"),
+                  "= ${ornamentcostWithPer.toStringAsFixed(3)} - ${advanceGold.toStringAsFixed(3)}"),
           if (calculateToMoney_) ...[
             if (isHistory) ...[
               TextBoxNormal(
@@ -417,6 +417,7 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
     'percentage']
     as String) // Adjust the type as necessary
         .toList();
+     print("typeAndPercentageList : $typeAndPercentageList");
 
     // Access the first percentage
     if (percentages.isNotEmpty) {
@@ -590,7 +591,7 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
                                                 _buildInfoRow(
                                                     "Advance Gold           : ",
                                                     data['advanceGold']),
-                                                const SizedBox(height: 16),
+                                                const SizedBox(height: 8),
                                                   Column(
                                                     crossAxisAlignment:
                                                         CrossAxisAlignment
@@ -899,7 +900,7 @@ class _MainHomeScreen2State extends State<MainHomeScreen2> {
               ],
             ),
           ),
-          // if (isLoading) const LoadingIndicator(),
+          if (isLoading) const LoadingIndicator(),
         ],
       ),
     );

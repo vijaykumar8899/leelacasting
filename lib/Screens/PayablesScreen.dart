@@ -23,6 +23,8 @@ import '../CommonWidgets/TransctionDialog.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'MainHomeScreen2.dart';
+
 class PayablesScreen extends StatefulWidget {
   @override
   State<PayablesScreen> createState() => _PayablesScreenState();
@@ -379,12 +381,11 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => CalculateScreen(
-                                collectionPath: widget.collectionPath,
-                                docId: doc.id,
-                                history: doc['todaysGoldPrice'],
-                                transaction: doc['transactionClosed']
-                            )),
+                            builder: (context) =>
+                                MainHomeScreen2(
+                                    collectionPath:
+                                    widget.collectionPath,
+                                    docId: doc.id)),
                       );
                     },
                     child: Container(

@@ -12,6 +12,7 @@ import 'package:leelacasting/HelperFunctions/Toast.dart';
 import 'package:leelacasting/HelperFunctions/Wathsapp.dart';
 import 'package:leelacasting/Screens/CalculateScreen.dart';
 import 'package:leelacasting/Screens/GoldRateInput.dart';
+import 'package:leelacasting/Screens/MainHomeScreen2.dart';
 import 'package:leelacasting/Screens/TransactionSaveScreen.dart';
 import 'package:leelacasting/Utilites/CollectionNames.dart';
 import 'package:leelacasting/Utilites/Colors.dart';
@@ -261,11 +262,11 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => CalculateScreen(
-                                collectionPath: widget.collectionPath,
-                                docId: doc.id,
-                                history: doc['todaysGoldPrice'],
-                                transaction: doc['transactionClosed'])),
+                            builder: (context) =>
+                                MainHomeScreen2(
+                                    collectionPath:
+                                    widget.collectionPath,
+                                    docId: doc.id)),
                       );
                     },
                     child: Container(
