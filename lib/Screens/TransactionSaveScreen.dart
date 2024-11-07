@@ -72,14 +72,16 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 96, 66, 0),
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 96, 66, 0),
         title: Text(
-          "Order Page",
-          style: GoogleFonts.rowdies(
-            textStyle: const TextStyle(
-              color: Colors.black,
-              fontSize: 20,
+          'Leela Casting',
+          style: GoogleFonts.spectralSc(
+            textStyle: TextStyle(
+              fontSize: 30, // Set your desired font size
               fontWeight: FontWeight.bold,
+              color: Colors.white, // Title color
             ),
           ),
         ),
@@ -94,89 +96,155 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         ],
         elevation: 0,
         centerTitle: true,
-        backgroundColor: AppColors.primaryClr,
       ),
       body: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                buildTextFormField(
-                  labelText: "Name",
-                  keyboardType: TextInputType.name,
-                  controller: _nameCtrl,
+          Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width *
+                  0.9, // Make the container responsive
+              padding: EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 20), // Adjusted padding for title space
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color.fromARGB(255, 4, 52, 135).withOpacity(0.2),
+                    Colors.black
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                buildTextFormField(
-                  labelText: "Enter Phone Number",
-                  keyboardType: TextInputType.phone,
-                  controller: _phoneNumberCtrl,
-                ),
-                buildTextFormField(
-                  labelText: "City",
-                  keyboardType: TextInputType.name,
-                  controller: _cityCtrl,
-                ),
-                buildTextFormField(
-                  labelText: "Advance Gold",
-                  keyboardType: TextInputType.number,
-                  controller: _advanceGoldCtrl,
-                ),
-                // buildTextFormField(
-                //   labelText: "Quantity",
-                //   keyboardType: TextInputType.number,
-                //   controller: _quantityCtrl,
-                //   onChanged: (value) {
-                //     setState(() {
-                //       _quantity = int.tryParse(value) ?? 0;
-                //       _updateDropdownFields();
-                //     });
-                //   },
-                // ),
-                // _buildDynamicFields(),
-                _buildDropdownField(
-                  labelText: "Select Type",
-                  items: _typeOptions,
-                  value: _selectedTypeValues[0],
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedTypeValues[0] = newValue;
-                    });
-                  },
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      isLoading = true;
-                    });
-                    if(_nameCtrl.text.isNotEmpty  && _phoneNumberCtrl.text.isNotEmpty && _cityCtrl.text.isNotEmpty && _advanceGoldCtrl.text.isNotEmpty && _selectedTypeValues.isNotEmpty ) {
-                      await _saveTransaction();
-                    setState(() {
-                      _quantity = 1;
-                      isLoading = false;
-                    });
-                    ToastMessage.toast_("Data Saved.");
-                    //navigating to homeScreen
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return TransactionDialog(
-                          collectionPath: formattedDate,
-                          docId: length.toString(),
-                        );
-                      },
-                    );
-                    }
-                    else{
-                      ToastMessage.toast_('Enter all fields.');
+                borderRadius: BorderRadius.circular(30),
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black87.withOpacity(0.5),
+                //     spreadRadius: 4,
+                //     blurRadius: 15,
+                //     offset: const Offset(3, 8),
+                //   ),
+                // ],
+              ),
+              child: Column(
+                mainAxisSize:
+                    MainAxisSize.min, // Adjusts the height based on content
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Aligns title to start
+                children: [
+                  // Title at the top
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: 50.0,
+                      top: 20,
+                    ), // Space below title
+                    child: Center(
+                      child: Text(
+                        "Enter Order Details",
+                        style: GoogleFonts.spectralSc(
+                          textStyle: TextStyle(
+                            fontSize: 30, // Set your desired font size
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white, // Title color
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Form fields
+                  buildTextFormField(
+                    labelText: "Name",
+                    keyboardType: TextInputType.name,
+                    controller: _nameCtrl,
+                  ),
+                  SizedBox(height: 20), // Spacing between fields
+                  buildTextFormField(
+                    labelText: "Enter Phone Number",
+                    keyboardType: TextInputType.phone,
+                    controller: _phoneNumberCtrl,
+                  ),
+                  SizedBox(height: 20),
+                  buildTextFormField(
+                    labelText: "City",
+                    keyboardType: TextInputType.name,
+                    controller: _cityCtrl,
+                  ),
+                  SizedBox(height: 20),
+                  buildTextFormField(
+                    labelText: "Advance Gold",
+                    keyboardType: TextInputType.number,
+                    controller: _advanceGoldCtrl,
+                  ),
+                  SizedBox(height: 20),
+                  _buildDropdownField(
+                    labelText: "Select Type",
+                    items: _typeOptions,
+                    value: _selectedTypeValues[0],
+                    onChanged: (String? newValue) {
                       setState(() {
-                        isLoading=false;
+                        _selectedTypeValues[0] = newValue;
                       });
-                    }
-                  },
-                  child: Text("Save Transaction"),
-                ),
-              ],
+                    },
+                  ),
+                  SizedBox(height: 50), // Space before button
+
+                  // Save Button
+                  Center(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                            255, 1, 72, 86), // Button color
+                        padding: EdgeInsets.symmetric(
+                            vertical: 14.0, horizontal: 24.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      onPressed: () async {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        if (_nameCtrl.text.isNotEmpty &&
+                            _phoneNumberCtrl.text.isNotEmpty &&
+                            _cityCtrl.text.isNotEmpty &&
+                            _advanceGoldCtrl.text.isNotEmpty &&
+                            _selectedTypeValues.isNotEmpty) {
+                          await _saveTransaction();
+                          setState(() {
+                            _quantity = 1;
+                            isLoading = false;
+                          });
+                          ToastMessage.toast_("Data Saved.");
+                          // Navigating to homeScreen
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return TransactionDialog(
+                                collectionPath: formattedDate,
+                                docId: length.toString(),
+                              );
+                            },
+                          );
+                        } else {
+                          ToastMessage.toast_('Enter all fields.');
+                          setState(() {
+                            isLoading = false;
+                          });
+                        }
+                      },
+                      child: Text(
+                        "Save Transaction",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: const Color.fromARGB(250, 255, 249, 249),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
           Visibility(
@@ -343,45 +411,45 @@ class _TransactionSaveScreenState extends State<TransactionSaveScreen> {
         'type': selectedType,
         'percentage': percentage,
       });
-        bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
-        if (doesUserExist) {
-          length = await getDayPayables();
-          var generatedBarCode = '$formattedDate-$length';
-          print("generatedBar : $generatedBarCode");
+      bool doesUserExist = await checkCustmerExist(_phoneNumberCtrl.text);
+      if (doesUserExist) {
+        length = await getDayPayables();
+        var generatedBarCode = '$formattedDate-$length';
+        print("generatedBar : $generatedBarCode");
 
-          final weight = _advanceGoldCtrl.text;
+        final weight = _advanceGoldCtrl.text;
 
-          // Save data to Firestore
-          await firestore
-              .collection(Collectionnames.mainCollectionName)
-              .doc(Collectionnames.dialyTransactionDoc)
-              .collection(formattedDate)
-              .doc(length.toString())
-              .set({
-            'name': _nameCtrl.text,
-            'phoneNumber': _phoneNumberCtrl.text,
-            'city': _cityCtrl.text,
-            'generatedBarCode': generatedBarCode,
-            'advanceGold': weight.toString(),
-            'typeAndPercentage': typesAndPercentages,
-            'ornamentWeight': '0.000',
-            'pendingGold': '0.000',
-            'resultMoney': '0',
-            'todaysGoldPrice': '0',
-            'payables': 'NA',
-            'receivables': 'NA',
-            'active': 'Y',
-            'transactionClosed': 'N',
-            'timeStamp': Timestamp.now(),
-          }).then((value) {
-            print('Data Added.');
-          }).catchError((error) {
-            print('Error : $error');
-          });
-        } else {
-          ToastMessage.toast_(
-              'Something went wrong, Please try after some time : userCheck');
-        }
+        // Save data to Firestore
+        await firestore
+            .collection(Collectionnames.mainCollectionName)
+            .doc(Collectionnames.dialyTransactionDoc)
+            .collection(formattedDate)
+            .doc(length.toString())
+            .set({
+          'name': _nameCtrl.text,
+          'phoneNumber': _phoneNumberCtrl.text,
+          'city': _cityCtrl.text,
+          'generatedBarCode': generatedBarCode,
+          'advanceGold': weight.toString(),
+          'typeAndPercentage': typesAndPercentages,
+          'ornamentWeight': '0.000',
+          'pendingGold': '0.000',
+          'resultMoney': '0',
+          'todaysGoldPrice': '0',
+          'payables': 'NA',
+          'receivables': 'NA',
+          'active': 'Y',
+          'transactionClosed': 'N',
+          'timeStamp': Timestamp.now(),
+        }).then((value) {
+          print('Data Added.');
+        }).catchError((error) {
+          print('Error : $error');
+        });
+      } else {
+        ToastMessage.toast_(
+            'Something went wrong, Please try after some time : userCheck');
+      }
     } catch (e) {
       print("Error: $e");
     }
@@ -404,30 +472,39 @@ Widget _buildDropdownField({
   String? value,
   required ValueChanged<String?> onChanged,
 }) {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey[200],
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.orangeAccent, width: 2.0),
-          borderRadius: BorderRadius.circular(10),
+  return Container(
+    margin: EdgeInsets.symmetric(horizontal: 50),
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: DropdownButtonFormField<String>(
+        value: value,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: const Color.fromARGB(255, 0, 0, 0),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: const Color.fromARGB(147, 255, 172, 64), width: 2.0),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: const Color.fromARGB(255, 88, 88, 88), width: 2.0),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          labelText: labelText,
+          labelStyle: TextStyle(
+            color: const Color.fromARGB(
+                255, 146, 146, 146), // Set your desired label text color here
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey[400]!, width: 2.0),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        labelText: labelText,
+        items: items.map<DropdownMenuItem<String>>((String item) {
+          return DropdownMenuItem<String>(
+            value: item,
+            child: Text(item),
+          );
+        }).toList(),
+        onChanged: onChanged,
       ),
-      items: items.map<DropdownMenuItem<String>>((String item) {
-        return DropdownMenuItem<String>(
-          value: item,
-          child: Text(item),
-        );
-      }).toList(),
-      onChanged: onChanged,
     ),
   );
 }

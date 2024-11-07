@@ -346,11 +346,12 @@ class _CalculateScreenState extends State<CalculateScreen> {
                       SizedBox(
                         height: 20,
                       ),
-
                     ],
                   ],
                   // Text("transactionClosed_ : $transactionClosed_"),
-                  SizedBox(height: 20,),
+                  SizedBox(
+                    height: 20,
+                  ),
                   ElevatedButton(
                     onPressed: () async {
                       takeOrnamentWeight(context);
@@ -376,8 +377,7 @@ class _CalculateScreenState extends State<CalculateScreen> {
                             // print("transactionClosed_ : $transactionClosed_");
                           });
                         },
-                        activeColor:
-                        Colors.black, // Color when switch is on
+                        activeColor: Colors.black, // Color when switch is on
                       ),
                     ],
                   ),
@@ -400,8 +400,7 @@ class _CalculateScreenState extends State<CalculateScreen> {
                             // print("transactionClosed_ : $transactionClosed_");
                           });
                         },
-                        activeColor:
-                        Colors.black, // Color when switch is on
+                        activeColor: Colors.black, // Color when switch is on
                       ),
                     ],
                   ),
@@ -483,7 +482,6 @@ class _FetchDataOfPaticularRecordState
         .snapshots();
 
     return Container(
-      color: Colors.red,
       // height: MediaQuery.of(context).size.height - 650,
       // width: MediaQuery.of(context).size.width - 20,
 
@@ -528,132 +526,133 @@ class _FetchDataOfPaticularRecordState
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Card(
-              elevation: 4.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-                side: const BorderSide(width: 2.0, color: Colors.white),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BarcodeWidget(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white?.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  width: 170,
+                  height: 50,
+                  child: Center(
+                    child: BarcodeWidget(
                       barcode: Barcode.code128(), // Choose the barcode type
                       data: doc[
                           'generatedBarCode'], // The text to be converted into a barcode
-                      width: 250,
-                      height: 50,
+                      width: 140,
+                      height: 40,
                       drawText: true, // Display the text below the barcode
                     ),
-                    SizedBox(height: 10),
-                    // Display the text as a label below the barcode
+                  ),
+                ),
 
-                    Row(
-                      children: [
-                        TextBoxBold(text: "Customer Name :"),
-                        SpaceBox(size: 20),
-                        TextBoxNormal(
-                          text: "${doc['name']}",
-                        ),
-                      ],
+                SizedBox(height: 10),
+                // Display the text as a label below the barcode
+
+                Row(
+                  children: [
+                    TextBoxBold(text: "Customer Name :"),
+                    SpaceBox(size: 20),
+                    TextBoxNormal(
+                      text: "${doc['name']}",
                     ),
-                    Row(
-                      children: [
-                        TextBoxBold(text: "City :"),
-                        SpaceBox(size: 20),
-                        TextBoxNormal(
-                          text: "${doc['city']}",
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        TextBoxBold(text: "PhoneNumber"),
-                        SpaceBox(size: 20),
-                        TextBoxNormal(
-                          text: "${doc['phoneNumber']}",
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        TextBoxBold(text: "Advance Gold :"),
-                        SpaceBox(size: 20),
-                        TextBoxNormal(
-                          text: "${doc['advanceGold']}",
-                        ),
-                      ],
-                    ),
-                    if (doc['typeAndPercentage'] is List) ...[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: typeAndPercentageList.map((item) {
-                          return Row(
-                            children: [
-                              TextBoxBold(text: "Type : "),
-                              SpaceBox(size: 20),
-                              TextBoxNormal(
-                                text: "${item['type']} ",
-                              ),
-                              TextBoxNormal(
-                                text: "${item['percentage']}%",
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ] else ...[
-                      Row(
-                        children: [
-                          TextBoxBold(text: "Type"),
-                          SpaceBox(size: 20),
-                          TextBoxNormal(
-                            text: "${doc['type']}",
-                          ),
-                          TextBoxNormal(
-                            text: "${doc['typeAndPercentage']}",
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (ornamentWeight > 0) ...[
-                      Row(
-                        children: [
-                          TextBoxBold(text: "Ornament Weight"),
-                          SpaceBox(size: 20),
-                          TextBoxNormal(
-                            text: "${doc['ornamentWeight']}",
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (doc['todaysGoldPrice'].toString() != '0') ...[
-                      Row(
-                        children: [
-                          TextBoxBold(text: "Gold Rate :"),
-                          SpaceBox(size: 20),
-                          TextBoxNormal(
-                            text: "${doc['todaysGoldPrice']}",
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (doc['pendingGold'].toString() != '0.000') ...[
-                      Row(
-                        children: [
-                          TextBoxBold(text: "Pending Gold :"),
-                          SpaceBox(size: 20),
-                          TextBoxNormal(
-                            text: "${doc['pendingGold']}",
-                          ),
-                        ],
-                      ),
-                    ],
                   ],
                 ),
-              ),
+                Row(
+                  children: [
+                    TextBoxBold(text: "City :"),
+                    SpaceBox(size: 20),
+                    TextBoxNormal(
+                      text: "${doc['city']}",
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    TextBoxBold(text: "PhoneNumber"),
+                    SpaceBox(size: 20),
+                    TextBoxNormal(
+                      text: "${doc['phoneNumber']}",
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    TextBoxBold(text: "Advance Gold :"),
+                    SpaceBox(size: 20),
+                    TextBoxNormal(
+                      text: "${doc['advanceGold']}",
+                    ),
+                  ],
+                ),
+                if (doc['typeAndPercentage'] is List) ...[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: typeAndPercentageList.map((item) {
+                      return Row(
+                        children: [
+                          TextBoxBold(text: "Type : "),
+                          SpaceBox(size: 20),
+                          TextBoxNormal(
+                            text: "${item['type']} ",
+                          ),
+                          TextBoxNormal(
+                            text: "${item['percentage']}%",
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ] else ...[
+                  Row(
+                    children: [
+                      TextBoxBold(text: "Type"),
+                      SpaceBox(size: 20),
+                      TextBoxNormal(
+                        text: "${doc['type']}",
+                      ),
+                      TextBoxNormal(
+                        text: "${doc['typeAndPercentage']}",
+                      ),
+                    ],
+                  ),
+                ],
+                if (ornamentWeight > 0) ...[
+                  Row(
+                    children: [
+                      TextBoxBold(text: "Ornament Weight"),
+                      SpaceBox(size: 20),
+                      TextBoxNormal(
+                        text: "${doc['ornamentWeight']}",
+                      ),
+                    ],
+                  ),
+                ],
+                if (doc['todaysGoldPrice'].toString() != '0') ...[
+                  Row(
+                    children: [
+                      TextBoxBold(text: "Gold Rate :"),
+                      SpaceBox(size: 20),
+                      TextBoxNormal(
+                        text: "${doc['todaysGoldPrice']}",
+                      ),
+                    ],
+                  ),
+                ],
+                if (doc['pendingGold'].toString() != '0.000') ...[
+                  Row(
+                    children: [
+                      TextBoxBold(text: "Pending Gold :"),
+                      SpaceBox(size: 20),
+                      TextBoxNormal(
+                        text: "${doc['pendingGold']}",
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
           );
         },

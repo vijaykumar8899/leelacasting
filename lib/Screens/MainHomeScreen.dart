@@ -141,7 +141,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                     // Split the string by the hyphen
                     List<String> parts = scannedBarcode.split('-');
                     // Join all parts except the last one to get the date
-                    String datePart = parts.sublist(0, parts.length - 1).join('-');
+                    String datePart =
+                        parts.sublist(0, parts.length - 1).join('-');
                     // Get the last part which is the digit
                     String digitPart = parts.last;
                     print('Date: $datePart'); // Output: 20-11-2024
@@ -149,11 +150,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              MainHomeScreen2(
-                                  collectionPath:
-                                  digitPart,
-                                  docId: digitPart)),
+                          builder: (context) => MainHomeScreen2(
+                              collectionPath: digitPart, docId: digitPart)),
                     );
                   }
                 } catch (e) {
@@ -185,7 +183,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                   builder: (context) {
                     return AlertDialog(
                       title: Text('Camera Permission Denied'),
-                      content: Text('Please enable camera permission to scan barcodes.'),
+                      content: Text(
+                          'Please enable camera permission to scan barcodes.'),
                       actions: <Widget>[
                         TextButton(
                           child: Text('OK'),
@@ -222,68 +221,98 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: AppColors.primaryClr,
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Color.fromARGB(
+                255, 84, 58, 1), // Match the home page background
+            borderRadius: BorderRadius.horizontal(
+                right: Radius.circular(0)), // Rounded right side
+          ),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 1, 29, 53),
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(0)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Leela Casting',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Your tagline here',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-                // Handle the Home tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              onTap: () {
-                // Handle the Settings tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.contact_page),
-              title: Text('Contact'),
-              onTap: () {
-                // Handle the Contact tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            //bluetooth
-            ListTile(
-              leading: Icon(Icons.bluetooth_rounded),
-              title: Text('Bluetooth Printer'),
-              onTap: () {
-                // Handle the Contact tap
-                Navigator.pop(context); // Close the drawer
-              },
-            ),
-            //Gold Rate update
-            ListTile(
-              leading: Icon(Icons.currency_rupee_sharp),
-              title: Text("Today's Gold Rate"),
-              onTap: () async {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GoldRateInput(),
+              _createDrawerItem(
+                icon: Icons.home,
+                text: 'Home',
+                onTap: () {
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              _createDrawerItem(
+                icon: Icons.settings,
+                text: 'Settings',
+                onTap: () {
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              _createDrawerItem(
+                icon: Icons.contact_page,
+                text: 'Contact',
+                onTap: () {
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              _createDrawerItem(
+                icon: Icons.bluetooth_rounded,
+                text: 'Bluetooth Printer',
+                onTap: () {
+                  Navigator.pop(context); // Close the drawer
+                },
+              ),
+              _createDrawerItem(
+                icon: Icons.currency_rupee_sharp,
+                text: "Today's Gold Rate",
+                onTap: () async {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GoldRateInput(),
+                    ),
+                  );
+                },
+              ),
+              Divider(color: Colors.white70), // Optional divider for separation
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Version 1.0.0',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
                   ),
-                );
-              },
-            ),
-          ],
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       body: Container(
@@ -295,21 +324,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
               child: isSelectedDate
                   ? Container(
                       margin: EdgeInsets.only(left: 15, bottom: 10, right: 15),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color.fromARGB(
-                              255, 155, 155, 155), // Gold color
-                          width: 2.0, // Adjust the width as needed
-                        ),
-
-                        color: Color.fromARGB(246, 2, 17,
-                            34), // Background color (set to your preference)
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(30),
-                          bottom: Radius.circular(
-                              30), // Adjust radius for bottom corners
-                        ),
-                      ),
 
                       padding: const EdgeInsets.all(0.0),
                       // Background color for the detail view
@@ -875,5 +889,24 @@ Widget _buildInfoRow(String label, String? value) {
         ),
       ),
     ],
+  );
+}
+
+Widget _createDrawerItem(
+    {required IconData icon,
+    required String text,
+    required GestureTapCallback onTap}) {
+  return ListTile(
+    leading: Icon(icon, color: Colors.white), // Icon color to match the theme
+    title: Text(
+      text,
+      style: TextStyle(
+        color: Colors.white, // Text color to match the theme
+        fontSize: 18,
+      ),
+    ),
+    onTap: onTap,
+    tileColor: Colors.transparent, // Make the tile background transparent
+    hoverColor: Colors.white24, // Change color on hover
   );
 }

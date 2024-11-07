@@ -28,7 +28,8 @@ class ReceivablesScreen extends StatefulWidget {
   @override
   State<ReceivablesScreen> createState() => _ReceivablesScreenState();
 
-  static String? sharedPrefUserPhoneNumber = "";
+  static String? sharedPrefUser;
+  String PhoneNumber = "";
 }
 
 class _ReceivablesScreenState extends State<ReceivablesScreen> {
@@ -41,8 +42,7 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
     fetchAllDocuments();
   }
 
-  Future<QuerySnapshot<Map<String, dynamic>>>
-      fetchAllDocumentSnapshots() async {
+  Future<QuerySnapshot<Map<String, dynamic>>> fetchAllDocuments() async {
     return await FirebaseFirestore.instance
         .collection(Collectionnames.mainCollectionName)
         .doc(Collectionnames.dialyTransactionDoc)
@@ -51,40 +51,29 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
         .get();
   }
 
-  Future<QuerySnapshot<Map<String, dynamic>>> fetchAllDocuments() async {
-    final QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-        .instance
-        .collection(Collectionnames.mainCollectionName)
-        .doc(Collectionnames.dialyTransactionDoc)
-        .collection(Collectionnames.allDataCollection)
-        .orderBy('timeStamp', descending: true)
-        .get();
-
-    return snapshot;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 96, 66, 0),
       key: _scaffoldKey,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           "Receivables Page",
-          style: GoogleFonts.rowdies(
-            textStyle: const TextStyle(
-              color: Colors.black,
+          style: GoogleFonts.spectralSc(
+            textStyle: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
         ),
         elevation: 0,
         centerTitle: true,
-        backgroundColor: AppColors.primaryClr,
+        backgroundColor: Color.fromARGB(255, 96, 66, 0),
       ),
       body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        future: fetchAllDocumentSnapshots(),
+        future: fetchAllDocuments(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -104,17 +93,10 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
               itemBuilder: (context, index) {
                 final document = snapshot.data!.docs[index];
                 final documentID = document.id;
-                final documentData = document.data() as Map<String, dynamic>;
 
-                // print(ReceivablesScreen.numberOfArrowIcons);
-                // String totalWeight = documentData['totalWeight'];
-                // print('document : $document');
-
-                // Display the document ID and its data
                 return Container(
                   child: Row(
                     children: [
-                      // Left container occupying 3/4th of the width
                       Expanded(
                         flex: 3,
                         child: Container(
@@ -126,7 +108,6 @@ class _ReceivablesScreenState extends State<ReceivablesScreen> {
                           ),
                         ),
                       ),
-                      // Right container occupying 1/4th of the width
                       Expanded(
                         flex: 1,
                         child: Container(
@@ -167,26 +148,42 @@ class _DayDisplayContainerState extends State<DayDisplayContainer> {
         Container(
           height: MediaQuery.of(context).size.height * 0.04,
           width: MediaQuery.of(context).size.width - 40,
-          margin: EdgeInsets.all(8),
+          margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
+          padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
-            color: AppColors.secondaryClr,
+            gradient: LinearGradient(
+              colors: [
+                const Color.fromARGB(255, 0, 24, 50),
+                const Color.fromARGB(255, 0, 18, 36)
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orangeAccent.withOpacity(0.5),
+                blurRadius: 0.0,
+                spreadRadius: 0.0,
+                offset: const Offset(0, 1),
+              ),
+            ],
             border: Border.all(
-              color: Colors.white70,
-              width: 1.5,
+              color: const Color.fromARGB(255, 184, 182, 182),
+
+              width: 1.5, // Adjusted width
             ),
           ),
-          // color: Colors.blue,
-          padding: const EdgeInsets.all(5),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Center(
                 child: Text(
                   widget.date,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                  style: GoogleFonts.mate(
+                    fontSize: 18, // Increased font size
+                    fontWeight: FontWeight.w600, // Bolder font weight
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -213,6 +210,32 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
   bool isLoading = false;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  Widget _buildInfoRow(String label, String? value) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.spectralSc(
+            textStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.grey[300],
+            ),
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          value ?? '',
+          style: GoogleFonts.domine(
+            textStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,12 +249,20 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
     return Column(
       children: [
         Container(
-          margin: EdgeInsets.all(8.0),
+          padding: EdgeInsets.only(bottom: 10),
           width: MediaQuery.of(context).size.width - 30,
           height: MediaQuery.of(context).size.height - 800,
+          margin: EdgeInsets.only(left: 15, bottom: 10, right: 15),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: AppColors.secondaryClr,
+            border: Border.all(
+              color: const Color.fromARGB(255, 155, 155, 155),
+              width: 2.0,
+            ),
+            color: Color.fromARGB(246, 2, 17, 34),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(20),
+              bottom: Radius.circular(20),
+            ),
           ),
           child: StreamBuilder(
             stream: stream_,
@@ -262,146 +293,116 @@ class _DisplayDataFromFirebaseState extends State<DisplayDataFromFirebase> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                MainHomeScreen2(
-                                    collectionPath:
-                                    widget.collectionPath,
-                                    docId: doc.id)),
+                            builder: (context) => MainHomeScreen2(
+                                collectionPath: widget.collectionPath,
+                                docId: doc.id)),
                       );
                     },
                     child: Container(
-                      margin: EdgeInsets.all(8.0),
-                      child: Card(
-                        elevation: 4.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          side:
-                              const BorderSide(width: 2.0, color: Colors.white),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 0,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(18.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            // crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  BarcodeWidget(
-                                    barcode: Barcode
-                                        .code128(), // Choose the barcode type
-                                    data: doc[
-                                        'generatedBarCode'], // The text to be converted into a barcode
-                                    width: 250,
-                                    height: 50,
-                                    drawText:
-                                        true, // Display the text below the barcode
+                        image: DecorationImage(
+                          image: NetworkImage(
+                              'https://cdn.vectorstock.com/i/500p/81/36/luxury-black-gold-background-elegant-business-vector-52808136.jpg'),
+                          fit: BoxFit.cover,
+                        ),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.black54,
+                            Colors.black54,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20.0, horizontal: 18.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white?.withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(10.0),
                                   ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      TextBoxBold(text: "Customer Name "),
-                                      SpaceBox(size: 20),
-                                      TextBoxNormal(
-                                        text: ": ${doc['name']}",
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      TextBoxBold(text: "City "),
-                                      SpaceBox(size: 60),
-                                      TextBoxNormal(
-                                        text: ": ${doc['city']}",
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      TextBoxBold(text: "PhoneNumber"),
-                                      SpaceBox(size: 20),
-                                      TextBoxNormal(
-                                        text: "${doc['phoneNumber']}",
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      TextBoxBold(text: "Advance Gold :"),
-                                      SpaceBox(size: 20),
-                                      TextBoxNormal(
-                                        text: "${doc['advanceGold']}",
-                                      ),
-                                    ],
-                                  ),
-                                  if (doc['typeAndPercentage'] is List) ...[
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children:
-                                          typeAndPercentageList.map((item) {
-                                        return Row(
-                                          children: [
-                                            TextBoxBold(text: "Type : "),
-                                            SpaceBox(size: 20),
-                                            TextBoxNormal(
-                                              text: "${item['type']} ",
-                                            ),
-                                            TextBoxNormal(
-                                              text: "${item['percentage']}%",
-                                            ),
-                                          ],
-                                        );
-                                      }).toList(),
+                                  width: 170,
+                                  height: 50,
+                                  child: Center(
+                                    child: BarcodeWidget(
+                                      barcode: Barcode.code128(),
+                                      data: doc['generatedBarCode'],
+                                      width: 140,
+                                      height: 45,
+                                      drawText: true,
                                     ),
-                                  ],
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    onPressed: () async {
-                                      setState(() {
-                                        isLoading = true;
-                                      });
-                                      // Capture screenshot and save it
-                                      // await captureAndSaveScreenshot();
-
-                                      await Wathsapp
-                                          .sendMessageToCustomerFromWhatsApp(
-                                              doc['phoneNumber'], doc['name']);
-
-                                      // await sendImageToWathsapp();
-                                      setState(() {
-                                        isLoading = false;
-                                      });
-                                    },
-                                    icon: const Icon(FontAwesomeIcons.whatsapp),
                                   ),
-                                  IconButton(
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return TransactionDialog(
-                                            collectionPath:
-                                                widget.collectionPath,
-                                            docId: doc.id,
-                                          );
-                                        },
-                                      );
-                                    },
-                                    icon: const Icon(FontAwesomeIcons.print),
+                                ),
+                                SizedBox(height: 3),
+                                _buildInfoRow(
+                                    "Customer Name     : ", doc['name']),
+                                _buildInfoRow(
+                                    "City                             : ",
+                                    doc['city']),
+                                _buildInfoRow("Phone Number        : ",
+                                    doc['phoneNumber']),
+                                _buildInfoRow("Advance Gold         : ",
+                                    doc['advanceGold']),
+                                if (doc['typeAndPercentage'] is List) ...[
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: typeAndPercentageList.map((item) {
+                                      return _buildInfoRow("Type",
+                                          "${item['type']} (${item['percentage']}%)");
+                                    }).toList(),
                                   ),
                                 ],
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () async {
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+                                    await Wathsapp
+                                        .sendMessageToCustomerFromWhatsApp(
+                                            doc['phoneNumber'], doc['name']);
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  },
+                                  icon: const Icon(FontAwesomeIcons.whatsapp),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return TransactionDialog(
+                                          collectionPath: widget.collectionPath,
+                                          docId: doc.id,
+                                        );
+                                      },
+                                    );
+                                  },
+                                  icon: const Icon(FontAwesomeIcons.print),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ),

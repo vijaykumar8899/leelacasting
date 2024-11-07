@@ -1,4 +1,3 @@
-// transaction_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leelacasting/Screens/CalculateScreen.dart';
@@ -19,42 +18,56 @@ class TransactionDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       contentPadding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      backgroundColor: const Color.fromARGB(255, 178, 212, 240),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
       title: Center(
         child: Text(
           'Leela Casting',
           style: GoogleFonts.italiana(
             textStyle: const TextStyle(
-              color: Colors.black,
-              fontSize: 20,
+              color: Colors.orangeAccent,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
       ),
       content: Container(
+        margin: EdgeInsets.only(top: 20),
         height: 370,
         width: 500,
-        child: Card(
-          elevation: 4.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            side: const BorderSide(width: 2.0, color: Colors.white),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: FetchDataOfPaticularRecord(
-                    collectionPath: collectionPath,
-                    docId: docId,
-                  ),
-                ),
-              ],
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15), // Curved border
+            border: Border.all(
+              color: Colors.white, // Border color
+              width: 0, // Slight border width for visibility
             ),
+            image: DecorationImage(
+              image: NetworkImage(
+                  'https://cdn.vectorstock.com/i/500p/81/36/luxury-black-gold-background-elegant-business-vector-52808136.jpg'), // Background image
+              fit: BoxFit.cover, // Ensure the image covers the entire container
+            ),
+            gradient: LinearGradient(
+              colors: [
+                Colors.black54, // Add some transparency to enhance readability
+                Colors.black54,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: FetchDataOfPaticularRecord(
+                  collectionPath: collectionPath,
+                  docId: docId,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -63,9 +76,21 @@ class TransactionDialog extends StatelessWidget {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: const Text('Cancel'),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orangeAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
           onPressed: () {
             Navigator.pop(context);
             Navigator.push(
@@ -73,7 +98,13 @@ class TransactionDialog extends StatelessWidget {
               MaterialPageRoute(builder: (context) => TabsScreen()),
             );
           },
-          child: const Text('Print'),
+          child: Text(
+            'Print',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ],
     );
